@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const JsonWebTokenError = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema({
     fullname: {
