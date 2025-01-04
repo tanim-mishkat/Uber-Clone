@@ -140,9 +140,9 @@ This endpoint allows users to log in by validating their email and password, gen
 
 The request body should be in JSON format and must include the following fields:
 
-| Field   | Type   | Required | Validation                     |
-| ------- | ------ | -------- | ------------------------------- |
-| `email` | String | Yes      | Must be a valid email format.   |
+| Field      | Type   | Required | Validation                          |
+| ---------- | ------ | -------- | ----------------------------------- |
+| `email`    | String | Yes      | Must be a valid email format.       |
 | `password` | String | Yes      | Must be at least 6 characters long. |
 
 ### Example Request Body
@@ -239,3 +239,138 @@ This endpoint relies on the following:
 - Model: `user.model.js`
 - Routes: `user.routes.js`
 - Service: `user.service.js`
+
+---
+
+## Endpoint
+
+`/users/profile`
+
+## Description
+
+This endpoint allows authenticated users to fetch their profile details.
+
+## HTTP Method
+
+**GET**
+
+## Authentication
+
+- Requires a valid JWT token in the `Authorization` header or as a cookie.
+
+### Example Request
+
+```http
+GET /users/profile HTTP/1.1
+Authorization: Bearer <JWT_AUTH_TOKEN>
+```
+
+## Response
+
+### Success Response
+
+- **Status Code**: `200 OK`
+- **Description**: Returns the user's profile details.
+- **Response Body**:
+
+```json
+{
+  "_id": "64a1e7fd2d51a24b8c3f",
+  "fullname": {
+    "firstname": "John",
+    "lastname": "Doe"
+  },
+  "email": "john.doe@example.com"
+}
+```
+
+### Error Responses
+
+#### Unauthorized
+
+- **Status Code**: `401 Unauthorized`
+- **Description**: The user is not authenticated.
+- **Response Body**:
+
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+## Notes
+
+- This endpoint is protected by middleware to verify authentication.
+
+## Dependencies
+
+This endpoint relies on the following:
+
+- Middleware: `auth.middleware.js`
+- Controller: `user.controller.js`
+
+---
+
+## Endpoint
+
+`/users/logout`
+
+## Description
+
+This endpoint allows authenticated users to log out by clearing their session token and blacklisting it.
+
+## HTTP Method
+
+**GET**
+
+## Authentication
+
+- Requires a valid JWT token in the `Authorization` header or as a cookie.
+
+### Example Request
+
+```http
+GET /users/logout HTTP/1.1
+Authorization: Bearer <JWT_AUTH_TOKEN>
+```
+
+## Response
+
+### Success Response
+
+- **Status Code**: `200 OK`
+- **Description**: The user was successfully logged out.
+- **Response Body**:
+
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
+### Error Responses
+
+#### Unauthorized
+
+- **Status Code**: `401 Unauthorized`
+- **Description**: The user is not authenticated.
+- **Response Body**:
+
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+## Notes
+
+- The token is added to a blacklist to prevent reuse.
+- The token will expire automatically after 24 hours.
+
+## Dependencies
+
+This endpoint relies on the following:
+
+- Middleware: `auth.middleware.js`
+- Model: `blacklistToken.model.js`
+- Controller: `user.controller.js`
