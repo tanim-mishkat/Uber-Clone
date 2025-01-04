@@ -30,24 +30,18 @@ const userSchema = new mongoose.Schema({
     },
 });
 
-// Instance method to generate an authentication token for the user
 userSchema.methods.generateAuthToken = function () {
-    // Create a JWT token with the user's _id as the payload and secret key from environment variables
     const token = JsonWebTokenError.sign({
-        _id: this._id,  // Attach user _id to the token payload
-    }, process.env.JWT_SECRET);  // Sign the token with a secret key from environment variables
-    return token;  // Return the generated token
+        _id: this._id,
+    }, process.env.JWT_SECRET);
+    return token;
 }
 
-// Instance method to compare a given password with the stored hashed password
 userSchema.methods.comparePassword = async function (password) {
-    // Use bcrypt to compare the plain password with the hashed password in the database
     return await bcrypt.compare(password, this.password);
 }
 
-// Static method to hash a given password before storing it in the database
 userSchema.statics.hashPassword = async function (password) {
-    // Use bcrypt to hash the password with a salt round of 10
     return await bcrypt.hash(password, 10);
 }
 
