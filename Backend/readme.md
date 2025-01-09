@@ -244,133 +244,150 @@ This endpoint relies on the following:
 
 ## Endpoint
 
-`/users/profile`
+`/captains/register`
 
 ## Description
 
-This endpoint allows authenticated users to fetch their profile details.
+This endpoint is used to register a new captain. It accepts captain details such as name, email, password, and vehicle details, validates the input, and creates the captain in the database.
 
 ## HTTP Method
 
-**GET**
+**POST**
 
-## Authentication
+## Request Body
 
-- Requires a valid JWT token in the `Authorization` header or as a cookie.
+The request body should be in JSON format and must include the following fields:
 
-### Example Request
+| Field                     | Type   | Required | Validation                                 |
+| ------------------------- | ------ | -------- | ----------------------------------------- |
+| `fullname.firstname`      | String | Yes      | Must be at least 3 characters long.       |
+| `fullname.lastname`       | String | No       | Optional but must be at least 3 characters long if provided. |
+| `email`                   | String | Yes      | Must be a valid email format.             |
+| `password`                | String | Yes      | Must be at least 6 characters long.       |
+| `vehicle.color`           | String | Yes      | Must be at least 3 characters long.       |
+| `vehicle.plate`           | String | Yes      | Must be at least 3 characters long.       |
+| `vehicle.capacity`        | Number | Yes      | Must be at least 1.                       |
+| `vehicle.vehicleType`     | String | Yes      | Must be one of `car`, `cng`, or `motorcycle`. |
 
-```http
-GET /users/profile HTTP/1.1
-Authorization: Bearer <JWT_AUTH_TOKEN>
-```
-
-## Response
-
-### Success Response
-
-- **Status Code**: `200 OK`
-- **Description**: Returns the user's profile details.
-- **Response Body**:
+### Example Request Body
 
 ```json
 {
-  "_id": "64a1e7fd2d51a24b8c3f",
   "fullname": {
-    "firstname": "John",
+    "firstname": "Jane",
     "lastname": "Doe"
   },
-  "email": "john.doe@example.com"
+  "email": "jane.doe@example.com",
+  "password": "securepassword",
+  "vehicle": {
+    "color": "Red",
+    "plate": "ABC-123",
+    "capacity": 4,
+    "vehicleType": "car"
+  }
 }
-```
-
-### Error Responses
-
-#### Unauthorized
-
-- **Status Code**: `401 Unauthorized`
-- **Description**: The user is not authenticated.
-- **Response Body**:
-
-```json
-{
-  "error": "Unauthorized"
-}
-```
-
-## Notes
-
-- This endpoint is protected by middleware to verify authentication.
-
-## Dependencies
-
-This endpoint relies on the following:
-
-- Middleware: `auth.middleware.js`
-- Controller: `user.controller.js`
-
----
-
-## Endpoint
-
-`/users/logout`
-
-## Description
-
-This endpoint allows authenticated users to log out by clearing their session token and blacklisting it.
-
-## HTTP Method
-
-**GET**
-
-## Authentication
-
-- Requires a valid JWT token in the `Authorization` header or as a cookie.
-
-### Example Request
-
-```http
-GET /users/logout HTTP/1.1
-Authorization: Bearer <JWT_AUTH_TOKEN>
 ```
 
 ## Response
 
 ### Success Response
 
-- **Status Code**: `200 OK`
-- **Description**: The user was successfully logged out.
+- **Status Code**: `201 Created`
+- **Description**: The captain was successfully registered, and an authentication token was generated.
 - **Response Body**:
 
 ```json
 {
-  "message": "Logged out successfully"
+  "captain": {
+    "fullname": {
+      "firstname": "Jane",
+      "lastname": "Doe"
+    },
+    "email": "jane.doe@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC-123",
+      "capacity": 4,
+      "vehicleType": "car"
+    },
+    "_id": "64a1e7fd2d51a24b8c3f"
+  },
+  "token": "<JWT_AUTH_TOKEN>"
 }
 ```
 
 ### Error Responses
 
-#### Unauthorized
+#### Validation Errors
 
-- **Status Code**: `401 Unauthorized`
-- **Description**: The user is not authenticated.
+- **Status Code**: `400 Bad Request`
+- **Description**: Input validation failed.
 - **Response Body**:
 
 ```json
 {
-  "error": "Unauthorized"
+  "errors": [
+    {
+      "msg": "First name must be at least 3 characters long",
+      "param": "fullname.firstname",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### Missing Required Fields
+
+- **Status Code**: `400 Bad Request`
+- **Description**: One or more required fields are missing.
+- **Response Body**:
+
+```json
+{
+  "message": "All fields are required"
+}
+```
+
+#### Duplicate Email
+
+- **Status Code**: `400 Bad Request`
+- **Description**: A captain with the provided email already exists.
+- **Response Body**:
+
+```json
+{
+  "error": "Captain already registered"
+}
+```
+
+#### Server Errors
+
+- **Status Code**: `500 Internal Server Error`
+- **Description**: An unexpected error occurred on the server.
+- **Response Body**:
+
+```json
+{
+  "message": "An unexpected error occurred"
 }
 ```
 
 ## Notes
 
-- The token is added to a blacklist to prevent reuse.
-- The token will expire automatically after 24 hours.
+- The password is hashed before being stored in the database.
+- A unique JWT token is generated upon successful registration.
 
 ## Dependencies
 
 This endpoint relies on the following:
 
-- Middleware: `auth.middleware.js`
-- Model: `blacklistToken.model.js`
-- Controller: `user.controller.js`
+- Input validation using `express-validator`.
+- MongoDB for storing captain details.
+- JSON Web Tokens (JWT) for authentication.
+
+## Related Files
+
+- Controller: `captain.controller.js`
+- Model: `captain.model.js`
+- Routes: `captain.routes.js`
+- Service: `captain.service.js`
