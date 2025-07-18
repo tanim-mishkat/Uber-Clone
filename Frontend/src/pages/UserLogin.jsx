@@ -1,19 +1,35 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { UserDataContext } from "../context/UserContext";
+import axios from "axios";
 
 const UserLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   // eslint-disable-next-line no-unused-vars
-  const [userData, setUserData] = useState({});
+  // const [userData, setUserData] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
-  const submitHandler = (e) => {
+  const { user, setUser } = useContext(UserDataContext);
+  const navigate = useNavigate();
+
+  const submitHandler = async (e) => {
     e.preventDefault();
-    setUserData({
+    const userData = {
       email: email,
       password: password,
-    });
+    };
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_BASE_URL}/users/login`,
+      userData
+    );
+    if (response.status === 200) {
+      const data = response.data;
+      setUser(data.user);
+      localStorage.setItem("token", data.token);
+      navigate("/home");
+    }
     setEmail("");
     setPassword("");
   };
@@ -34,7 +50,6 @@ const UserLogin = () => {
             placeholder="youremail@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            
             required
           />
 
@@ -46,7 +61,6 @@ const UserLogin = () => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              
             />
             <span
               className="absolute right-3 top-3 text-blue-600 cursor-pointer z-10"
