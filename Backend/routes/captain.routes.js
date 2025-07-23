@@ -1,4 +1,4 @@
-const captainController = require('../db/controllers/captain.cotroller');
+const captainController = require('../db/controllers/captain.controller');
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
