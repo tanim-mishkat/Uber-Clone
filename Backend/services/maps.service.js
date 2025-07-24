@@ -25,27 +25,54 @@ module.exports.getAddressCoordinate = async (address) => {
     }
 }
 
+
 module.exports.getDistanceTime = async (origin, destination) => {
+    if (!origin || !destination) {
+        throw new Error('Origin and destination are required');
+    }
+
+    const url = `https://router.project-osrm.org/route/v1/driving/${origin[1]},${origin[0]};${destination[1]},${destination[0]}?overview=false`;
+
     try {
-        const [fromCoords, toCoords] = await Promise.all([
-            this.getAddressCoordinate(origin),
-            this.getAddressCoordinate(destination),
-        ]);
-
-        const url = `http://router.project-osrm.org/route/v1/driving/${fromCoords.lon},${fromCoords.lat};${toCoords.lon},${toCoords.lat}?overview=false`;
-
         const response = await axios.get(url);
 
-        if (!response.data.routes || response.data.routes.length === 0) {
-            throw new Error('No route found');
+        if (response.data.code === "Ok") {
+            const route = response.data.routes[0];
+            if (!route) {
+                throw new Error('No route found');
+            }
+
+            const distanceInMeters = route.distance;
+            const durationInSeconds = route.duration;
+
+            // Format distance
+            const distanceInKm = (distanceInMeters / 1000).toFixed(0); // whole km
+            const distanceText = `${Number(distanceInKm).toLocaleString()} km`;
+
+            // Format duration
+            const days = Math.floor(durationInSeconds / 86400);
+            const hours = Math.floor((durationInSeconds % 86400) / 3600);
+            const minutes = Math.floor((durationInSeconds % 3600) / 60);
+
+            let durationText = '';
+            if (days > 0) durationText += `${days} day${days > 1 ? 's' : ''} `;
+            if (hours > 0) durationText += `${hours} hour${hours > 1 ? 's' : ''} `;
+            if (minutes > 0) durationText += `${minutes} min${minutes > 1 ? 's' : ''}`;
+            durationText = durationText.trim();
+
+            return {
+                distance: {
+                    text: distanceText,
+                    value: Math.round(distanceInMeters)
+                },
+                duration: {
+                    text: durationText,
+                    value: Math.round(durationInSeconds)
+                }
+            };
+        } else {
+            throw new Error('Failed to get route');
         }
-
-        const route = response.data.routes[0];
-
-        return {
-            distanceInKm: route.distance / 1000,       // in km
-            durationInMin: route.duration / 60          // in minutes
-        };
 
     } catch (error) {
         console.error("getDistanceTime Error:", error.message);

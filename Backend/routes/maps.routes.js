@@ -11,8 +11,8 @@ router.get('/get-coordinates',
 );
 
 router.get('/get-distance-time',
-    query('origin').isString().isLength({ min: 3 }),
-    query('destination').isString().isLength({ min: 3 }),
+    query('origin').notEmpty().withMessage('Origin is required'),
+    query('destination').notEmpty().withMessage('Destination is required'),
     authMiddleware.authUser,
     mapController.getDistanceTime
 );

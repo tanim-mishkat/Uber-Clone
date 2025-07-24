@@ -17,18 +17,27 @@ module.exports.getCoordinates = async (req, res, next) => {
     }
 }
 
-module.exports.getDistanceTime = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { origin, destination } = req.query;
-
+module.exports.getDistanceTime = async (req, res, next) => {
     try {
-        const data = await mapService.getDistanceTime(origin, destination);
-        return res.status(200).json(data);
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { origin, destination } = req.query;
+
+        // Convert both place names to coordinates
+        const originCoords = await mapService.getAddressCoordinate(origin);
+        const destinationCoords = await mapService.getAddressCoordinate(destination);
+
+        // Build arrays: [lat, lon]
+        const originArray = [originCoords.lat || originCoords.ltd, originCoords.lon || originCoords.lng];
+        const destinationArray = [destinationCoords.lat || destinationCoords.ltd, destinationCoords.lon || destinationCoords.lng];
+
+        const distanceTime = await mapService.getDistanceTime(originArray, destinationArray);
+        res.status(200).json(distanceTime);
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        console.error(error.message);
+        res.status(404).json({ message: 'Distance and time not found' });
     }
 };
