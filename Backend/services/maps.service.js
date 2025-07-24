@@ -79,3 +79,29 @@ module.exports.getDistanceTime = async (origin, destination) => {
         throw new Error('Failed to fetch distance and duration');
     }
 };
+
+module.exports.getAutoCompleteSuggestions = async (input) => {
+    if (!input) {
+        throw new Error('Address is required');
+    }
+
+    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(input)}&limit=5`;
+
+    try {
+        const response = await axios.get(url);
+        const features = response.data.features || [];
+
+        return features.map(feature => ({
+            name: feature.properties.name,
+            city: feature.properties.city || feature.properties.county || '',
+            country: feature.properties.country || '',
+            lat: feature.geometry.coordinates[1],
+            lon: feature.geometry.coordinates[0],
+            display_name: feature.properties.name + (feature.properties.city ? `, ${feature.properties.city}` : '') + (feature.properties.country ? `, ${feature.properties.country}` : ''),
+            placeId: feature.properties.osm_id,
+        }));
+    } catch (error) {
+        console.error('getAutoCompleteSuggestions Error:', error.message);
+        throw new Error('Failed to fetch suggestions');
+    }
+};

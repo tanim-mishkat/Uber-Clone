@@ -17,4 +17,10 @@ router.get('/get-distance-time',
     mapController.getDistanceTime
 );
 
+router.get('/get-suggestions',
+    query('input').notEmpty().withMessage('Input is required'),
+    authMiddleware.authUser,
+    mapController.getSuggestions
+);
+
 module.exports = router;
