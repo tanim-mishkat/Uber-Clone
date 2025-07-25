@@ -31,9 +31,19 @@ module.exports.getDistanceTime = async (origin, destination) => {
         throw new Error('Origin and destination are required');
     }
 
-    const url = `https://router.project-osrm.org/route/v1/driving/${origin[1]},${origin[0]};${destination[1]},${destination[0]}?overview=false`;
-
     try {
+        // Get coordinates for both locations
+        const originCoords = await module.exports.getAddressCoordinate(origin);
+        const destCoords = await module.exports.getAddressCoordinate(destination);
+
+        console.log('Origin coords:', originCoords);
+        console.log('Dest coords:', destCoords);
+
+        // Use OSRM (Open Source Routing Machine) for routing
+        const url = `https://router.project-osrm.org/route/v1/driving/${originCoords.lng},${originCoords.ltd};${destCoords.lng},${destCoords.ltd}?overview=false`;
+
+        console.log('OSRM URL:', url);
+
         const response = await axios.get(url);
 
         if (response.data.code === "Ok") {
@@ -46,7 +56,7 @@ module.exports.getDistanceTime = async (origin, destination) => {
             const durationInSeconds = route.duration;
 
             // Format distance
-            const distanceInKm = (distanceInMeters / 1000).toFixed(0); // whole km
+            const distanceInKm = (distanceInMeters / 1000).toFixed(2);
             const distanceText = `${Number(distanceInKm).toLocaleString()} km`;
 
             // Format duration
