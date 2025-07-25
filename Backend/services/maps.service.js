@@ -36,13 +36,9 @@ module.exports.getDistanceTime = async (origin, destination) => {
         const originCoords = await module.exports.getAddressCoordinate(origin);
         const destCoords = await module.exports.getAddressCoordinate(destination);
 
-        console.log('Origin coords:', originCoords);
-        console.log('Dest coords:', destCoords);
-
         // Use OSRM (Open Source Routing Machine) for routing
         const url = `https://router.project-osrm.org/route/v1/driving/${originCoords.lng},${originCoords.ltd};${destCoords.lng},${destCoords.ltd}?overview=false`;
 
-        console.log('OSRM URL:', url);
 
         const response = await axios.get(url);
 
@@ -115,3 +111,4 @@ module.exports.getAutoCompleteSuggestions = async (input) => {
         throw new Error('Failed to fetch suggestions');
     }
 };
+

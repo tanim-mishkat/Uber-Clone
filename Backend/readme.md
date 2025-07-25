@@ -613,4 +613,104 @@ Authorization: Bearer <JWT_AUTH_TOKEN>
 }
 ```
 
----
+...
+
+## Endpoint
+
+`/rides/get-fare`
+
+## Description
+
+This endpoint calculates the fare for a ride based on the pickup and destination locations.
+
+## HTTP Method
+
+**GET**
+
+## Query Parameters
+
+| Parameter     | Type   | Required | Description                       |
+| ------------- | ------ | -------- | --------------------------------- |
+| `pickup`      | String | Yes      | The pickup location address.      |
+| `destination` | String | Yes      | The destination location address. |
+
+### Example Request
+
+```http
+GET /rides/get-fare?pickup=24B/AA-11&destination=Sylhet%20Stadium HTTP/1.1
+Authorization: Bearer <JWT_AUTH_TOKEN>
+```
+
+## Response
+
+### Success Response
+
+- **Status Code**: `200 OK`
+- **Description**: Returns the calculated fares for different vehicle types.
+- **Response Body**:
+
+```json
+{
+  "car": 120,
+  "cng": 50,
+  "motorcycle": 30
+}
+```
+
+### Error Responses
+
+#### Missing Parameters
+
+- **Status Code**: `400 Bad Request`
+- **Description**: Either the pickup or destination parameter is missing.
+- **Response Body**:
+
+```json
+{
+  "message": "Pickup and destination are required"
+}
+```
+
+#### Unauthorized
+
+- **Status Code**: `401 Unauthorized`
+- **Description**: The user is not authenticated.
+- **Response Body**:
+
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+#### Server Errors
+
+- **Status Code**: `500 Internal Server Error`
+- **Description**: An unexpected error occurred on the server.
+- **Response Body**:
+
+```json
+{
+  "message": "An unexpected error occurred"
+}
+```
+
+## Notes
+
+- The fare is calculated based on the distance between the pickup and destination locations.
+- Different rates are applied for different vehicle types (`car`, `cng`, `motorcycle`).
+
+## Dependencies
+
+This endpoint relies on the following:
+
+- Distance and time calculation using the `maps.service.js`.
+- Fare calculation logic in the `ride.service.js`.
+
+## Related Files
+
+- Controller: `ride.controller.js`
+- Service: `ride.service.js`
+- Routes: `ride.routes.js`
+
+

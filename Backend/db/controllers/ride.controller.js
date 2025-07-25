@@ -19,6 +19,23 @@ module.exports.createRide = async (req, res, next) => {
         });
         return res.status(201).json(ride);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        console.error('Error in createRide:', error.message);
+        res.status(500).json({ message: 'Failed to create ride' });
     }
-}   
+};
+
+module.exports.getFare = async (req, res, next) => {
+    const { pickup, destination } = req.query;
+
+    if (!pickup || !destination) {
+        return res.status(400).json({ message: 'Pickup and destination are required' });
+    }
+
+    try {
+        const fare = await rideService.getFare(pickup, destination);
+        return res.status(200).json(fare);
+    } catch (error) {
+        console.error('Error in getFare:', error.message);
+        res.status(500).json({ message: 'Failed to calculate fare' });
+    }
+};
