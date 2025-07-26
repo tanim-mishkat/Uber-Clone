@@ -31,8 +31,8 @@ module.exports.getFare = async (pickup, destination) => {
 
         return fares;
     } catch (error) {
-        console.error('Error in getFare:', error.message);
-        throw new Error('Failed to calculate fare');
+        console.error('Error in getFare (service):', error.message);
+        throw new Error('Failed to calculate fare (service)');
     }
 }
 
@@ -51,20 +51,21 @@ function getOtp(num) {
 module.exports.createRide = async ({
     user, pickup, destination, vehicleType
 }) => {
-    if (!user || !pickup || !destination || !vehicleType) {
+    if (!pickup || !destination || !vehicleType || !user) {
         throw new Error('All fields are required');
     }
 
-    const fares = await getFare(pickup, destination);
+    const fares = await module.exports.getFare(pickup, destination);
 
     const ride = await rideModel.create({
-        user: user,
+        user,
         pickup,
         destination,
         fare: fares[vehicleType],
         otp: getOtp(6),
         vehicleType
     });
+    console.log("Ride created successfully:", ride);
 
     return ride;
 }

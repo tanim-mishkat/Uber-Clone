@@ -8,7 +8,7 @@ module.exports.createRide = async (req, res, next) => {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const { userId, pickup, destination, vehicleType } = req.body;
+    const { pickup, destination, vehicleType } = req.body;
 
     try {
         const ride = await rideService.createRide({
@@ -19,7 +19,7 @@ module.exports.createRide = async (req, res, next) => {
         });
         return res.status(201).json(ride);
     } catch (error) {
-        console.error('Error in createRide:', error.message);
+        console.error('Error in createRide (controller):', error.message);
         res.status(500).json({ message: 'Failed to create ride' });
     }
 };
@@ -34,8 +34,9 @@ module.exports.getFare = async (req, res, next) => {
     try {
         const fare = await rideService.getFare(pickup, destination);
         return res.status(200).json(fare);
+
     } catch (error) {
-        console.error('Error in getFare:', error.message);
+        console.error('Error in getFare (controller):', error.message);
         res.status(500).json({ message: 'Failed to calculate fare' });
     }
 };

@@ -30,8 +30,9 @@ const Home = () => {
   const [vehicleFound, setVehicleFound] = useState(false);
   const [waitingForDriver, setWaitingForDriver] = useState(false);
   const submitHandler = (e) => e.preventDefault();
+  const [vehicleType, setVehicleType] = useState("");
 
-  async function findTrip(pickup, destination) {
+  async function findTrip() {
     console.log("Finding trip for:", pickup, destination);
     try {
       const response = await axios.get(
@@ -91,6 +92,39 @@ const Home = () => {
     }
     setSuggestions([]);
   };
+
+  async function createRide() {
+    try {
+      const payload = {
+        pickup,
+        destination,
+        vehicleType,
+      };
+      console.log("Creating ride with payload:", payload);
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/create`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log("Ride created successfully:", response.data);
+    } catch (error) {
+      console.error("Error creating ride:", error.message);
+      console.error(
+        "Response details:",
+        error.response?.data || "No response data"
+      );
+      alert(
+        `Failed to create ride: ${
+          error.response?.data?.message || "Unknown error occurred"
+        }`
+      );
+    }
+  }
 
   // GSAP Animations
   useGSAP(() => {
@@ -199,6 +233,7 @@ const Home = () => {
           destination={destination}
           fare={fare}
           setFare={setFare}
+          selectVehicleType={setVehicleType}
         />
       </div>
 
@@ -209,6 +244,11 @@ const Home = () => {
         <ConfirmRide
           setConfirmRidePanel={setConfirmRidePanel}
           setVehicleFound={setVehicleFound}
+          createRide={createRide}
+          pickup={pickup}
+          destination={destination}
+          vehicleType={vehicleType}
+          fare={fare}
         />
       </div>
 
@@ -216,7 +256,13 @@ const Home = () => {
         ref={vehicleFoundRef}
         className="fixed z-10 bottom-0 translate-y-full px-3 py-6 pt-12 bg-white w-full"
       >
-        <LookingForDriver setVehicleFound={setVehicleFound} />
+        <LookingForDriver
+          setVehicleFound={setVehicleFound}
+          pickup={pickup}
+          destination={destination}
+          vehicleType={vehicleType}
+          fare={fare}
+        />
       </div>
 
       <div

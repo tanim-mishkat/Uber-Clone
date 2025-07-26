@@ -9,7 +9,7 @@ const LocationSearchPanel = ({
 }) => {
   const handleFindRideClick = async () => {
     if (pickup.trim() && destination.trim()) {
-      await findTrip(pickup, destination); // Call findTrip to fetch fare
+      await findTrip(); // Call findTrip to fetch fare
       setPanelOpen(false);
       setVehiclePanel(true);
     } else {

@@ -17,7 +17,10 @@ const VehiclePanel = (props) => {
           src="https://imgs.search.brave.com/jbkD8t3qexpL_IRFxMjNwnZXxCWMoIAeUDRRJx3hh3w/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3N5c3RlbS9y/ZXNvdXJjZXMvdGh1/bWJuYWlscy8wMjkv/OTQ2LzE5My9zbWFs/bC93aGl0ZS1tb2Rl/cm4tY2FyLWlzb2xh/dGVkLW9uLXRyYW5z/cGFyZW50LWJhY2tn/cm91bmQtM2QtcmVu/ZGVyaW5nLWlsbHVz/dHJhdGlvbi1mcmVl/LXBuZy5wbmc"
           alt=""
         />
-        <div className=" w-1/2 ml-2">
+        <div
+          onClick={() => props.selectVehicleType("car")}
+          className=" w-1/2 ml-2"
+        >
           <h4 className="font-medium text-base">
             UberGo{" "}
             <span>
@@ -42,7 +45,10 @@ const VehiclePanel = (props) => {
           src="https://www.uber-assets.com/image/upload/f_auto%2Cq_auto%3Aeco%2Cc_fill%2Ch_538%2Cw_956/v1698944322/assets/92/00189a-71c0-4f6d-a9de-1b6a85239079/original/UberMoto-India-Orange.png"
           alt=""
         />
-        <div className=" w-1/2 ml-2">
+        <div
+          onClick={() => props.selectVehicleType("motorcycle")}
+          className=" w-1/2 ml-2"
+        >
           <h4 className="font-medium text-base">
             UberMoto{" "}
             <span>
@@ -67,7 +73,10 @@ const VehiclePanel = (props) => {
           src="https://images.openai.com/thumbnails/url/HYbWD3icu1mSUVJSUGylr5-al1xUWVCSmqJbkpRnoJdeXJJYkpmsl5yfq5-Zm5ieWmxfaAuUsXL0S7F0Tw4MSvctLnV1cgyMMCwN8E30yynNSa_I8kk1dvW0KCvJyM4xqnCL9HDMMfc1SPSL940szSxNi3D0dglwDFQrBgAoSioF"
           alt=""
         />
-        <div className=" w-1/2 ml-2">
+        <div
+          onClick={() => props.selectVehicleType("cng")}
+          className=" w-1/2 ml-2"
+        >
           <h4 className="font-medium text-base">
             UberCNG{" "}
             <span>
