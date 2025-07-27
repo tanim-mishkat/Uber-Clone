@@ -9,6 +9,11 @@ import ConfirmRide from "../components/ConfirmRide";
 import LookingForDriver from "../components/LookingForDriver";
 import WaitingForDriver from "../components/WaitingForDriver";
 import axios from "axios";
+import { SocketProvider } from "../context/SocketContext";
+import { UserDataContext } from "../context/UserContext";
+import { useEffect } from "react";
+import { useContext } from "react";
+import { useSocket } from "../context/SocketContext";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
@@ -31,6 +36,16 @@ const Home = () => {
   const [waitingForDriver, setWaitingForDriver] = useState(false);
   const submitHandler = (e) => e.preventDefault();
   const [vehicleType, setVehicleType] = useState("");
+
+  const { socket } = useSocket();
+  const { user } = useContext(UserDataContext);
+
+  // Initialize socket connection
+  useEffect(() => {
+    if (socket && user?._id) {
+      socket.emit("join", { userId: user._id, userType: "user" });
+    }
+  }, [user, socket]);
 
   async function findTrip() {
     console.log("Finding trip for:", pickup, destination);
