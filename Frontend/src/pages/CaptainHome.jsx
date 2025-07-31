@@ -9,6 +9,7 @@ import { CaptainDataContext } from "../context/CaptainContext";
 import { useSocket } from "../context/SocketContext";
 import { useContext } from "react";
 import { useEffect } from "react";
+import { lchaToRgba } from "ol/color";
 
 function CaptainHome() {
   const ridePopUpPanelRef = useRef(null);
@@ -28,6 +29,33 @@ function CaptainHome() {
       });
     }
   }, [socket, captain]);
+
+  const updateLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        // console.log(
+        //   `socket.emit("update-location-captain", { userId: ${captain._id}, locatoion: { lat: ${position.coords.latitude}, lon: ${position.coords.longitude} } });`
+        // );
+
+        socket.emit("update-location-captain", {
+          userId: captain._id,
+          location: {
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          },
+        });
+      });
+    }
+  };
+
+  socket.on("new-ride", (data) => {
+    console.log("🚕 New ride received:", data);
+    // Show notification / UI update here
+  });
+
+  updateLocation();
+  const locationInterval = setInterval(updateLocation, 10000); // Update location every 10 seconds
+  // return () => clearInterval(locationInterval);
 
   useGSAP(() => {
     if (ridePopUpPanel) {

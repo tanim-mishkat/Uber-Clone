@@ -28,7 +28,7 @@ const captainSchema = new mongoose.Schema({
     },
     socketId: {
         type: String,
-        
+
     },
     status: {
         type: String,
@@ -59,14 +59,21 @@ const captainSchema = new mongoose.Schema({
         },
     },
     location: {
-        lat: {
-            type: Number,
+        type: {
+            type: String,
+            enum: ['Point'],
+            // required: true,
+            default: 'Point'
         },
-        long: {
-            type: Number,
+        coordinates: {
+            type: [Number],  // array of numbers: [longitude, latitude]
+            // required: true
+            default: [0, 0],
         }
-    },
+    }
+
 });
+captainSchema.index({ location: '2dsphere' });  // important for geospatial queries
 
 captainSchema.methods.generateAuthToken = function () {
     const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, { expiresIn: '24h' });

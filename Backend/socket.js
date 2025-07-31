@@ -29,19 +29,45 @@ function initializeSocket(server) {
             }
         });
 
+        socket.on("update-location-captain", async (data) => {
+            const { userId, location } = data;
+
+            if (!location || !location.lat || !location.lon) {
+                return socket.emit("error", { message: "Invalid location data" });
+            }
+
+            await captainModel.findByIdAndUpdate(userId, {
+                location: {
+                    type: "Point",
+                    coordinates: [location.lon, location.lat]
+                }
+            });
+
+            console.log(`Captain ${userId} updated location: ${location.lat}, ${location.lon}`);
+
+
+        });
+
+
         socket.on("disconnect", () => {
             console.log("Socket disconnected:", socket.id);
         });
     });
 }
-
-function sendMessageToSocketId(socketId, event, message) {
-    if (ioInstance) {
-        ioInstance.to(socketId).emit(event, message); // fixed: use passed event name
-    } else {
+function sendMessageToSocketId(socketId, { event, data }) {
+    if (!ioInstance) {
         console.error("Socket.io instance is not initialized.");
+        return;
     }
+
+    if (!event || typeof event !== 'string') {
+        console.error("Invalid or missing event name.");
+        return;
+    }
+
+    ioInstance.to(socketId).emit(event, data);
 }
+
 
 
 module.exports = {

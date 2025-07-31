@@ -19,7 +19,7 @@ const CaptainContext = ({ children }) => {
           setCaptain(res.data);
         })
         .catch((err) => {
-          console.error("❌ Not logged in");
+          console.error("Not logged in");
         })
         .finally(() => {
           setIsLoading(false);

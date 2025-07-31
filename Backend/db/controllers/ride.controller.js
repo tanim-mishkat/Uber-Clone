@@ -1,5 +1,7 @@
 const rideService = require('../../services/ride.service');
+const mapService = require('../../services/maps.service');
 const { validationResult } = require('express-validator');
+const { sendMessageToSocketId } = require('../../socket');
 
 module.exports.createRide = async (req, res, next) => {
     const errors = validationResult(req);
@@ -17,11 +19,33 @@ module.exports.createRide = async (req, res, next) => {
             destination,
             vehicleType
         });
-        return res.status(201).json(ride);
+
+        res.status(201).json(ride);
+
+        const pickupCoordinates = await mapService.getAddressCoordinate(pickup);
+
+        // console.log(pickupCoordinates);
+
+        const captainsInRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.lat, pickupCoordinates.lon, 2000);
+
+        ride.otp = "";
+
+        captainsInRadius.map(captain => {
+            console.log(captain, ride);
+            sendMessageToSocketId(captain.socketId, {
+                event: "new-ride",
+                data: ride
+            });
+        });
+
+
+
+
     } catch (error) {
-        console.error('Error in createRide (controller):', error.message);
-        res.status(500).json({ message: 'Failed to create ride' });
+        console.error('Error in createRide (controller):', error);
+        res.status(500).json({ message: 'Failed to create ride', error: error.message });
     }
+
 };
 
 module.exports.getFare = async (req, res, next) => {

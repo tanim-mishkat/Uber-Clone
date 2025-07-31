@@ -1,4 +1,5 @@
 const axios = require('axios');
+const captainModel = require('../models/captain.model');
 
 module.exports.getAddressCoordinate = async (address) => {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
@@ -13,8 +14,8 @@ module.exports.getAddressCoordinate = async (address) => {
         if (response.data && response.data.length > 0) {
             const location = response.data[0];
             return {
-                ltd: parseFloat(location.lat),
-                lng: parseFloat(location.lon)
+                lat: parseFloat(location.lat),
+                lon: parseFloat(location.lon)
             };
         } else {
             throw new Error('Unable to fetch coordinates');
@@ -37,7 +38,7 @@ module.exports.getDistanceTime = async (origin, destination) => {
         const destCoords = await module.exports.getAddressCoordinate(destination);
 
         // Use OSRM (Open Source Routing Machine) for routing
-        const url = `https://router.project-osrm.org/route/v1/driving/${originCoords.lng},${originCoords.ltd};${destCoords.lng},${destCoords.ltd}?overview=false`;
+        const url = `https://router.project-osrm.org/route/v1/driving/${originCoords.lon},${originCoords.lat};${destCoords.lon},${destCoords.lat}?overview=false`;
 
 
         const response = await axios.get(url);
@@ -112,3 +113,15 @@ module.exports.getAutoCompleteSuggestions = async (input) => {
     }
 };
 
+module.exports.getCaptainsInTheRadius = async (lat, lon, radius) => {
+    // radius in kilometers
+    const captains = await captainModel.find({
+        location: {
+            $geoWithin: {
+                $centerSphere: [[lon, lat], radius / 6371] // radius in kilometers
+            }
+        }
+    });
+
+    return captains;
+}
