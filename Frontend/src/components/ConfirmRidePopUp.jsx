@@ -22,7 +22,11 @@ const ConfirmRidePopUp = (props) => {
             src="https://imgs.search.brave.com/V6qLjB3fqMU_4WUuUDwKoH2OIhnvkD7DwDNdD2iO2Uo/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMTI5/ODA3NDIxNi9waG90/by9wb3J0cmFpdC1v/Zi1mZW1hbGUtYXJj/aGl0ZWN0LmpwZz9z/PTYxMng2MTImdz0w/Jms9MjAmYz02SW45/VkFiakExNmlicHRh/Um5GSzVzTF9SQ2tU/dUdlbG9qSVhLZi11/ZWpzPQ"
             alt=""
           />
-          <h2 className="text-lg font-medium">Mishkat Rahman</h2>
+          <h2 className="text-lg font-medium">
+            {props.ride?.user.fullname.firstname +
+              " " +
+              props.ride?.user.fullname.lastname}
+          </h2>
         </div>
         <h5 className="text-lg font-semibold text-gray-600">2.2km</h5>
       </div>
@@ -33,7 +37,7 @@ const ConfirmRidePopUp = (props) => {
             <div>
               <h3 className="font-medium text-lg">24B/AA-11</h3>
               <p className="text-sm text-gray-600 -mt-1">
-                Sylhet Stadium, Sylhet
+                {props.ride?.pickup}
               </p>
             </div>
           </div>
@@ -43,7 +47,7 @@ const ConfirmRidePopUp = (props) => {
             <div>
               <h3 className="font-medium text-lg">24B/AA-11</h3>
               <p className="text-sm text-gray-600 -mt-1">
-                Sylhet Stadium, Sylhet
+                {props.ride?.destination}
               </p>
             </div>
           </div>

@@ -10,13 +10,15 @@ import { useSocket } from "../context/SocketContext";
 import { useContext } from "react";
 import { useEffect } from "react";
 import { lchaToRgba } from "ol/color";
+import axios from "axios";
 
 function CaptainHome() {
   const ridePopUpPanelRef = useRef(null);
   const confirmRidePopUpPanelRef = useRef(null);
 
-  const [ridePopUpPanel, setRidePopUpPanel] = useState(true);
+  const [ridePopUpPanel, setRidePopUpPanel] = useState(false);
   const [confirmRidePopUpPanel, setConfirmRidePopUpPanel] = useState(false);
+  const [ride, setRide] = useState(null);
 
   const { socket } = useSocket();
   const { captain, setCaptain } = useContext(CaptainDataContext);
@@ -49,13 +51,46 @@ function CaptainHome() {
   };
 
   socket.on("new-ride", (data) => {
-    console.log("🚕 New ride received:", data);
-    // Show notification / UI update here
+    if (data?.captain) {
+      console.log("🚕 New ride received:", data);
+      setRide(data);
+      setRidePopUpPanel(true);
+    } else {
+      console.error("Received ride data without captain:", data);
+    }
   });
 
   updateLocation();
   const locationInterval = setInterval(updateLocation, 10000); // Update location every 10 seconds
   // return () => clearInterval(locationInterval);
+
+  async function confirmRide() {
+    const payload = {
+      rideId: ride._id, // Make sure this is valid
+      captainId: captain._id, // Make sure this is valid
+    };
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/confirm`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      console.log("Ride confirmed:", response.data);
+    } catch (error) {
+      console.error("Error confirming ride:", error.message);
+      alert(
+        `Failed to confirm ride: ${
+          error.response?.data?.message || "Unknown error occurred"
+        }`
+      );
+    }
+
+    console.log("captan home confirmRide function run successfully");
+    setConfirmRidePopUpPanel(true);
+    setRidePopUpPanel(false);
+  }
 
   useGSAP(() => {
     if (ridePopUpPanel) {
@@ -113,6 +148,8 @@ function CaptainHome() {
         <RidePopUp
           setConfirmRidePopUpPanel={setConfirmRidePopUpPanel}
           setRidePopUpPanel={setRidePopUpPanel}
+          ride={ride}
+          confirmRide={confirmRide}
         />
       </div>
 

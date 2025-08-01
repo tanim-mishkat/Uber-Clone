@@ -2,6 +2,8 @@ const rideService = require('../../services/ride.service');
 const mapService = require('../../services/maps.service');
 const { validationResult } = require('express-validator');
 const { sendMessageToSocketId } = require('../../socket');
+const rideModel = require('../../models/ride.model');
+const captainModel = require('../../models/captain.model');
 
 module.exports.createRide = async (req, res, next) => {
     const errors = validationResult(req);
@@ -29,17 +31,15 @@ module.exports.createRide = async (req, res, next) => {
         const captainsInRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.lat, pickupCoordinates.lon, 2000);
 
         ride.otp = "";
+        const rideWithUser = await rideModel.findOne({ _id: ride._id }).populate('user');
 
         captainsInRadius.map(captain => {
             console.log(captain, ride);
             sendMessageToSocketId(captain.socketId, {
                 event: "new-ride",
-                data: ride
+                data: rideWithUser
             });
         });
-
-
-
 
     } catch (error) {
         console.error('Error in createRide (controller):', error);
@@ -62,5 +62,34 @@ module.exports.getFare = async (req, res, next) => {
     } catch (error) {
         console.error('Error in getFare (controller):', error.message);
         res.status(500).json({ message: 'Failed to calculate fare' });
+    }
+};
+
+module.exports.confirmRide = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log("Errors in confirmRide (controller):", errors.array());
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { rideId } = req.body;
+
+    try {
+        const ride = await rideService.confirmRide({ rideId, captain: req.captain });
+        console.log("Ride confirmed successfully:", ride);
+
+        if (!ride || !ride.user || !ride.user.socketId) {
+            return res.status(404).json({ message: 'Ride or user not found in confirmRide (controller)' });
+        }
+
+        sendMessageToSocketId(ride.user.socketId, {
+            event: 'ride-confirmed',
+            data: ride
+        });
+
+        return res.status(200).json(ride);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Failed to confirm ride', error: err.message });
     }
 };

@@ -69,4 +69,31 @@ module.exports.createRide = async ({
 
     return ride;
 }
+module.exports.confirmRide = async (rideId, captain) => {
+    if (!rideId) {
+        throw new Error('ride id is required');
+    }
 
+    // Update the ride with captain and status
+    const resp = await rideModel.findOneAndUpdate(
+        { _id: rideId },
+        { status: 'accepted', captain: captain._id },
+        { new: true } // Ensure the updated ride is returned
+    );
+    console.log("Ride confirmed successfully:", resp);
+
+    // Fetch the updated ride with populated user and captain fields
+    const ride = await rideModel
+        .findOne({ _id: rideId })
+        .populate('user') // Ensure user is populated properly
+        .populate('captain'); // Ensure captain is populated properly
+
+    // Log the ride object to confirm it includes the captain data
+    console.log('Ride with captain:', ride);
+
+    if (!ride) {
+        throw new Error('Ride not found');
+    }
+
+    return ride;
+};

@@ -14,6 +14,7 @@ import { UserDataContext } from "../context/UserContext";
 import { useEffect } from "react";
 import { useContext } from "react";
 import { useSocket } from "../context/SocketContext";
+import RidePopUp from "../components/RidePopUp";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
@@ -36,6 +37,7 @@ const Home = () => {
   const [waitingForDriver, setWaitingForDriver] = useState(false);
   const submitHandler = (e) => e.preventDefault();
   const [vehicleType, setVehicleType] = useState("");
+  const [ride, setRide] = useState(null);
 
   const { socket } = useSocket();
   const { user } = useContext(UserDataContext);
@@ -46,6 +48,13 @@ const Home = () => {
       socket.emit("join", { userId: user._id, userType: "user" });
     }
   }, [user, socket]);
+
+  socket.on("ride-confirmed", (ride) => {
+    console.log("Ride found:", ride);
+    setVehicleFound(false);
+    setWaitingForDriver(true);
+    setRide(ride);
+  });
 
   async function findTrip() {
     console.log("Finding trip for:", pickup, destination);
@@ -284,7 +293,10 @@ const Home = () => {
         ref={waitingForDriverRef}
         className="fixed z-10 bottom-0 px-3 py-6 pt-12 bg-white w-full translate-y-full"
       >
-        <WaitingForDriver setWaitingForDriver={setWaitingForDriver} />
+        <WaitingForDriver
+          setWaitingForDriver={setWaitingForDriver}
+          ride={ride}
+        />
       </div>
     </div>
   );
