@@ -16,14 +16,17 @@ function WaitingForDriver(props) {
           className="h-12"
         />
         <div className="text-right">
-          <h2 className="text-lg font-medium">
+          <h2 className="text-lg font-medium capitalize">
             {props.ride?.captain?.fullname?.firstname +
               " " +
               props.ride?.captain?.fullname?.lastname}
           </h2>
-          <h4 className="text-xl font-semibold -mt-1 -mb-1">
-            {props.ride?.captain.vehicle.plate}
+          <h4 className="text-sm font-semibold -mt-1 -mb-1">
+            License Plate: {props.ride?.captain.vehicle.plate}
           </h4>
+          <p className="text-sm text-gray-600">
+            <span className="font-semibold">OTP: {props.ride?.otp}</span>
+          </p>
           <p className="text-sm text-gray-600">{props.ride?.pickup}</p>
         </div>
       </div>

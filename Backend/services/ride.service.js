@@ -1,4 +1,5 @@
-const rideModel = require('../models/ride.model')
+const rideModel = require('../models/ride.model');
+const { sendMessageToSocketId } = require('../socket');
 const mapService = require('./maps.service')
 const crypto = require('crypto');
 const mongoose = require('mongoose');
@@ -70,43 +71,7 @@ module.exports.createRide = async ({
 
     return ride;
 }
-// module.exports.confirmRide = async (rideId, captain) => {
-//     if (!rideId) {
-//         throw new Error('ride id is required');
-//     }
-//     console.log("ride service captain:", captain);
 
-//     const captainExists = await mongoose.model('captain').findById(captain);
-//     if (!captainExists) {
-//         throw new Error('Captain not found for confirmation ride (service)');
-//     }
-//     console.log('Captain found:', captainExists);
-
-//     // Update the ride with captain and status
-//     const resp = await rideModel.findOneAndUpdate(
-//         { _id: rideId },
-//         { status: 'accepted', captain: captain }, // Use captainId directly
-//         { new: true } // Ensure the updated ride is returned
-//     );
-//     console.log("Ride confirmed successfully in ride service:", resp);
-
-//     // Fetch the updated ride with populated user and captain fields
-//     const ride = await rideModel
-//         .findOne({ _id: rideId })
-//         .populate('user')
-//         .populate('captain');
-
-//     // Log the ride object to confirm it includes the captain data
-//     console.log('Ride with captain:', ride);
-
-//     if (!ride) {
-//         throw new Error('Ride not found in ride service');
-//     }
-
-//     return ride;
-// };
-
-// ✅ FIXED: Change parameter name from 'captain' to 'captainId'
 module.exports.confirmRide = async (rideId, captainId) => {
     if (!rideId) {
         throw new Error('ride id is required');
@@ -118,28 +83,25 @@ module.exports.confirmRide = async (rideId, captainId) => {
 
     console.log('🔧 Confirming ride with:', { rideId, captainId });
 
-    // ✅ FIXED: Now using captainId parameter correctly
     const captainExists = await mongoose.model('captain').findById(captainId);
     if (!captainExists) {
         throw new Error('Captain not found for confirmation ride (service)');
     }
     console.log('✅ Captain found:', captainExists._id);
 
-    // Update the ride with captain and status
     const resp = await rideModel.findOneAndUpdate(
         { _id: rideId },
-        { status: 'accepted', captain: captainId }, // ✅ FIXED: Now using captainId correctly
+        { status: 'accepted', captain: captainId },
         { new: true }
     );
     console.log("✅ Ride confirmed successfully in ride service:", resp);
 
-    // Fetch the updated ride with populated user and captain fields
     const ride = await rideModel
         .findOne({ _id: rideId })
         .populate('user')
-        .populate('captain');
+        .populate('captain')
+        .select('+otp');
 
-    // Log the ride object to confirm it includes the captain data
     console.log('✅ Final ride with captain:', {
         rideId: ride._id,
         status: ride.status,
@@ -154,3 +116,39 @@ module.exports.confirmRide = async (rideId, captainId) => {
 
     return ride;
 };
+
+module.exports.startRide = async ({ rideId, otp, captainId }) => {
+    if (!rideId || !otp || !captainId) {
+        throw new Error('rideId, otp and captainId are required');
+    }
+
+    const ride = await rideModel.findOne(
+        { _id: rideId, otp })
+        .populate('user')
+        .populate('captain')
+        .select('+otp');
+
+    if (!ride) {
+        throw new Error('Ride not found or invalid OTP');
+    }
+
+    if (ride.status !== 'accepted') {
+        throw new Error('Ride not accepted');
+    }
+    if (ride.otp !== otp) {
+        throw new Error('Invalid OTP');
+    }
+
+    await rideModel.findByIdAndUpdate(rideId, {
+        status: 'ongoing',
+    });
+
+    console.log('✅ Ride started successfully:', {
+        rideId: ride._id,
+        status: 'ongoing',
+        captainId: captainId
+    });
+
+
+    return ride;
+}

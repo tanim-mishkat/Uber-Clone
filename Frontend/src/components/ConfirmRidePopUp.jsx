@@ -1,11 +1,42 @@
+import axios from "axios";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const ConfirmRidePopUp = (props) => {
+  const navigate = useNavigate();
+
   const [otp, setOtp] = useState("");
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/rides/start-ride`,
+        {
+          params: {
+            rideId: props.ride?._id,
+            otp: otp,
+          },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        console.log("Ride confirmed successfully:", response.data);
+        props.setConfirmRidePopUpPanel(false);
+        props.setRidePopUpPanel(false);
+        navigate("/captain-riding");
+      }
+    } catch (error) {
+      console.error(
+        "❌ Failed to start ride:",
+        error.response?.data || error.message
+      );
+      alert(error.response?.data?.message || "Failed to start ride.");
+    }
   };
+
   return (
     <div>
       <h5
@@ -22,7 +53,7 @@ const ConfirmRidePopUp = (props) => {
             src="https://imgs.search.brave.com/V6qLjB3fqMU_4WUuUDwKoH2OIhnvkD7DwDNdD2iO2Uo/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMTI5/ODA3NDIxNi9waG90/by9wb3J0cmFpdC1v/Zi1mZW1hbGUtYXJj/aGl0ZWN0LmpwZz9z/PTYxMng2MTImdz0w/Jms9MjAmYz02SW45/VkFiakExNmlicHRh/Um5GSzVzTF9SQ2tU/dUdlbG9qSVhLZi11/ZWpzPQ"
             alt=""
           />
-          <h2 className="text-lg font-medium">
+          <h2 className="text-lg font-medium capitalize">
             {props.ride?.user.fullname.firstname +
               " " +
               props.ride?.user.fullname.lastname}
@@ -78,12 +109,9 @@ const ConfirmRidePopUp = (props) => {
             >
               Cancel
             </button>
-            <Link
-              to="/captain-riding"
-              className="mt-3 w-full flex justify-center  bg-green-600 text-white font-semibold  p-2 px-6 rounded-lg"
-            >
+            <button className="mt-3 w-full flex justify-center  bg-green-600 text-white font-semibold  p-2 px-6 rounded-lg">
               Confirm
-            </Link>
+            </button>
           </form>
         </div>
       </div>

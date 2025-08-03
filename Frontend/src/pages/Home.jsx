@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import { useContext } from "react";
 import { useSocket } from "../context/SocketContext";
 import RidePopUp from "../components/RidePopUp";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
@@ -29,6 +30,8 @@ const Home = () => {
   const confirmRidePanelRef = useRef(null);
   const vehicleFoundRef = useRef(null);
   const waitingForDriverRef = useRef(null);
+
+  const navigate = useNavigate();
 
   const [panelOpen, setPanelOpen] = useState(false);
   const [vehiclePanel, setVehiclePanel] = useState(false);
@@ -57,6 +60,12 @@ const Home = () => {
     }
     setVehicleFound(false);
     setWaitingForDriver(true);
+  });
+
+  socket.on("ride-started", (ride) => {
+    console.log("🚗 Ride started successfully:", ride);
+    setWaitingForDriver(false);
+    navigate("/riding");
   });
 
   async function findTrip() {

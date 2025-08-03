@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { body } = require('express-validator');
+const { body, query } = require('express-validator');
 const rideController = require('../db/controllers/ride.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
 
@@ -25,6 +25,10 @@ router.post('/confirm', authMiddleware.authCaptain,
     // body('otp').isString().isLength({ min: 6, max: 6 }).withMessage('OTP is required'),
     rideController.confirmRide);
 
-
+router.get('/start-ride', authMiddleware.authCaptain,
+    query('rideId').isMongoId().withMessage('Invalid ride ID'),
+    query('otp').isString().isLength({ min: 6, max: 6 }).withMessage('OTP is required'),
+    rideController.startRide
+)
 
 module.exports = router;
