@@ -9,7 +9,6 @@ import { CaptainDataContext } from "../context/CaptainContext";
 import { useSocket } from "../context/SocketContext";
 import { useContext } from "react";
 import { useEffect } from "react";
-import { lchaToRgba } from "ol/color";
 import axios from "axios";
 
 function CaptainHome() {
@@ -32,43 +31,75 @@ function CaptainHome() {
     }
   }, [socket, captain]);
 
-  const updateLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        // console.log(
-        //   `socket.emit("update-location-captain", { userId: ${captain._id}, locatoion: { lat: ${position.coords.latitude}, lon: ${position.coords.longitude} } });`
-        // );
+  // const updateLocation = () => {
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition((position) => {
+  //       socket.emit("update-location-captain", {
+  //         userId: captain._id,
+  //         location: {
+  //           lat: position.coords.latitude,
+  //           lon: position.coords.longitude,
+  //         },
+  //       });
+  //     });
+  //   }
+  // };
 
-        socket.emit("update-location-captain", {
-          userId: captain._id,
-          location: {
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-          },
+  // updateLocation();
+  // const locationInterval = setInterval(updateLocation, 10000); // Update location every 10 seconds
+  // // return () => clearInterval(locationInterval);
+
+  useEffect(() => {
+    function updateLocation() {
+      if (navigator.geolocation && captain?._id && socket) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          socket.emit("update-location-captain", {
+            userId: captain._id,
+            location: {
+              lat: position.coords.latitude,
+              lon: position.coords.longitude,
+            },
+          });
         });
-      });
+      }
     }
-  };
 
-  socket.on("new-ride", (data) => {
-    if (data?.captain) {
-      console.log("🚕 New ride received:", data);
-      setRide(data);
+    updateLocation(); // Initial call
+    const locationInterval = setInterval(updateLocation, 10000);
+
+    return () => clearInterval(locationInterval); // Cleanup on unmount
+  }, [captain?._id, socket]);
+
+  socket.on("new-ride", (ride) => {
+    console.log("📢 Raw ride ride received:", ride);
+
+    if (ride && ride.status === "pending" && !ride.captain) {
+      console.log("🚕 New ride available for acceptance:", ride);
+      setRide(ride);
       setRidePopUpPanel(true);
     } else {
-      console.error("Received ride data without captain:", data);
+      console.warn("⚠️ Received invalid/already-assigned ride:", {
+        hasride: !!ride,
+        status: ride?.status,
+        hasCaptain: !!ride?.captain,
+      });
     }
   });
 
-  updateLocation();
-  const locationInterval = setInterval(updateLocation, 10000); // Update location every 10 seconds
-  // return () => clearInterval(locationInterval);
-
   async function confirmRide() {
+    if (!ride?._id || !captain?._id) {
+      console.error("❌ Missing ride or captain data:", {
+        rideId: ride?._id,
+        captainId: captain?._id,
+      });
+      alert("Error: Missing ride or captain information");
+      return;
+    }
     const payload = {
-      rideId: ride._id, // Make sure this is valid
-      captainId: captain._id, // Make sure this is valid
+      rideId: ride._id,
+      captainId: captain._id,
     };
+    console.log("🚗 Attempting to confirm ride with payload:", payload);
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/rides/confirm`,
@@ -78,15 +109,29 @@ function CaptainHome() {
         }
       );
       console.log("Ride confirmed:", response.data);
+      // Check if response has captain populated
+      if (response.data?.captain) {
+        console.log("🎉 Captain successfully assigned:", response.data.captain);
+      } else {
+        console.warn("⚠️ Response missing captain data:", response.data);
+      }
     } catch (error) {
-      console.error("Error confirming ride:", error.message);
-      alert(
-        `Failed to confirm ride: ${
-          error.response?.data?.message || "Unknown error occurred"
-        }`
-      );
-    }
+      console.error("❌ Error confirming ride:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        fullError: error,
+      });
+      // Show detailed error message
+      const errorMessage =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "Unknown error occurred";
 
+      alert(`Failed to confirm ride: ${errorMessage}`);
+      return;
+    }
     console.log("captan home confirmRide function run successfully");
     setConfirmRidePopUpPanel(true);
     setRidePopUpPanel(false);
@@ -160,6 +205,7 @@ function CaptainHome() {
         <ConfirmRidePopUp
           setConfirmRidePopUpPanel={setConfirmRidePopUpPanel}
           setRidePopUpPanel={setRidePopUpPanel}
+          ride={ride}
         />
       </div>
     </div>

@@ -50,10 +50,13 @@ const Home = () => {
   }, [user, socket]);
 
   socket.on("ride-confirmed", (ride) => {
-    console.log("Ride found:", ride);
+    console.log("✅ Ride confirmed successfully:", ride);
+    if (ride?.captain && ride.status === "accepted") {
+      console.log("🎉 You are now assigned to this ride!");
+      setRide(ride);
+    }
     setVehicleFound(false);
     setWaitingForDriver(true);
-    setRide(ride);
   });
 
   async function findTrip() {

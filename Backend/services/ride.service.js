@@ -1,6 +1,7 @@
 const rideModel = require('../models/ride.model')
 const mapService = require('./maps.service')
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 
 
 module.exports.getFare = async (pickup, destination) => {
@@ -69,30 +70,86 @@ module.exports.createRide = async ({
 
     return ride;
 }
-module.exports.confirmRide = async (rideId, captain) => {
+// module.exports.confirmRide = async (rideId, captain) => {
+//     if (!rideId) {
+//         throw new Error('ride id is required');
+//     }
+//     console.log("ride service captain:", captain);
+
+//     const captainExists = await mongoose.model('captain').findById(captain);
+//     if (!captainExists) {
+//         throw new Error('Captain not found for confirmation ride (service)');
+//     }
+//     console.log('Captain found:', captainExists);
+
+//     // Update the ride with captain and status
+//     const resp = await rideModel.findOneAndUpdate(
+//         { _id: rideId },
+//         { status: 'accepted', captain: captain }, // Use captainId directly
+//         { new: true } // Ensure the updated ride is returned
+//     );
+//     console.log("Ride confirmed successfully in ride service:", resp);
+
+//     // Fetch the updated ride with populated user and captain fields
+//     const ride = await rideModel
+//         .findOne({ _id: rideId })
+//         .populate('user')
+//         .populate('captain');
+
+//     // Log the ride object to confirm it includes the captain data
+//     console.log('Ride with captain:', ride);
+
+//     if (!ride) {
+//         throw new Error('Ride not found in ride service');
+//     }
+
+//     return ride;
+// };
+
+// ✅ FIXED: Change parameter name from 'captain' to 'captainId'
+module.exports.confirmRide = async (rideId, captainId) => {
     if (!rideId) {
         throw new Error('ride id is required');
     }
 
+    if (!captainId) {
+        throw new Error('captain id is required');
+    }
+
+    console.log('🔧 Confirming ride with:', { rideId, captainId });
+
+    // ✅ FIXED: Now using captainId parameter correctly
+    const captainExists = await mongoose.model('captain').findById(captainId);
+    if (!captainExists) {
+        throw new Error('Captain not found for confirmation ride (service)');
+    }
+    console.log('✅ Captain found:', captainExists._id);
+
     // Update the ride with captain and status
     const resp = await rideModel.findOneAndUpdate(
         { _id: rideId },
-        { status: 'accepted', captain: captain._id },
-        { new: true } // Ensure the updated ride is returned
+        { status: 'accepted', captain: captainId }, // ✅ FIXED: Now using captainId correctly
+        { new: true }
     );
-    console.log("Ride confirmed successfully:", resp);
+    console.log("✅ Ride confirmed successfully in ride service:", resp);
 
     // Fetch the updated ride with populated user and captain fields
     const ride = await rideModel
         .findOne({ _id: rideId })
-        .populate('user') // Ensure user is populated properly
-        .populate('captain'); // Ensure captain is populated properly
+        .populate('user')
+        .populate('captain');
 
     // Log the ride object to confirm it includes the captain data
-    console.log('Ride with captain:', ride);
+    console.log('✅ Final ride with captain:', {
+        rideId: ride._id,
+        status: ride.status,
+        hasCaptain: !!ride.captain,
+        captainId: ride.captain?._id,
+        captainName: ride.captain?.fullname?.firstname
+    });
 
     if (!ride) {
-        throw new Error('Ride not found');
+        throw new Error('Ride not found in ride service');
     }
 
     return ride;

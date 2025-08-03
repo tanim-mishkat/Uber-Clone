@@ -72,14 +72,14 @@ module.exports.confirmRide = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const { rideId } = req.body;
+    const { rideId, captainId } = req.body;
 
     try {
-        const ride = await rideService.confirmRide({ rideId, captain: req.captain });
-        console.log("Ride confirmed successfully:", ride);
+        // Pass captainId directly instead of wrapping in object
+        const ride = await rideService.confirmRide(rideId, captainId);
 
         if (!ride || !ride.user || !ride.user.socketId) {
-            return res.status(404).json({ message: 'Ride or user not found in confirmRide (controller)' });
+            return res.status(404).json({ message: 'Ride or user not found' });
         }
 
         sendMessageToSocketId(ride.user.socketId, {
@@ -90,6 +90,9 @@ module.exports.confirmRide = async (req, res) => {
         return res.status(200).json(ride);
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ message: 'Failed to confirm ride', error: err.message });
+        return res.status(500).json({
+            message: 'Failed to confirm ride in ride controller',
+            error: err.message
+        });
     }
 };
