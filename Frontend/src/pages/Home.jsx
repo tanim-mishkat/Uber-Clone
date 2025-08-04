@@ -65,7 +65,7 @@ const Home = () => {
   socket.on("ride-started", (ride) => {
     console.log("🚗 Ride started successfully:", ride);
     setWaitingForDriver(false);
-    navigate("/riding");
+    navigate("/riding", { state: { ride } });
   });
 
   async function findTrip() {

@@ -26,7 +26,11 @@ const ConfirmRidePopUp = (props) => {
         console.log("Ride confirmed successfully:", response.data);
         props.setConfirmRidePopUpPanel(false);
         props.setRidePopUpPanel(false);
-        navigate("/captain-riding");
+        navigate("/captain-riding", {
+          state: {
+            ride: props.ride,
+          },
+        });
       }
     } catch (error) {
       console.error(
