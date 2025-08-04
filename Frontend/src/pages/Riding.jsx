@@ -3,13 +3,14 @@ import { useSocket } from "../context/SocketContext";
 import { useEffect } from "react";
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import LiveTracking from "../components/LiveTracking";
 const Riding = () => {
   const location = useLocation();
   const ride = location.state?.ride;
   const { socket } = useSocket();
   const navigate = useNavigate();
 
-  socket.on("ride-ended", (ride) => {
+  socket.on("ride-ended", () => {
     navigate("/home");
   });
 
@@ -22,10 +23,7 @@ const Riding = () => {
         <i className="ri-home-5-line text-lg font-medium"></i>
       </Link>
       <div className="h-1/2 ">
-        <img
-          className="w-full h-full object-cover"
-          src="https://imgs.search.brave.com/A9FGg0apJw5tFxYaTVZR3XNGO-SbZK-IiQwKcfRzWi8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzA3LzI4LzMwLzI2/LzM2MF9GXzcyODMw/MjYyMF9YZGRuZjVD/bDBLMUFDWnVyZDZ5/QnlVekhpSE1NSW9l/Ni5qcGc"
-        />
+        <LiveTracking />
       </div>
       <div className="h-1/2 p-4">
         <div className="flex items-center justify-between">
@@ -63,7 +61,7 @@ const Riding = () => {
             <div className="flex items-center gap-5 p-3 ">
               <i className="ri-currency-line text-lg"></i>
               <div>
-                <h3 className="font-medium text-lg">${ride?.price}</h3>
+                <h3 className="font-medium text-lg">${ride?.fare}</h3>
                 <p className="text-sm text-gray-600 -mt-1">Cash</p>
               </div>
             </div>

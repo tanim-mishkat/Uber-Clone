@@ -10,6 +10,7 @@ import { useSocket } from "../context/SocketContext";
 import { useContext } from "react";
 import { useEffect } from "react";
 import axios from "axios";
+import LiveTracking from "../components/LiveTracking";
 
 function CaptainHome() {
   const ridePopUpPanelRef = useRef(null);
@@ -173,12 +174,8 @@ function CaptainHome() {
       </Link>
 
       {/* Top Image */}
-      <div className="h-3/5 ">
-        <img
-          className="w-full h-full object-cover"
-          src="https://imgs.search.brave.com/A9FGg0apJw5tFxYaTVZR3XNGO-SbZK-IiQwKcfRzWi8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzA3LzI4LzMwLzI2/LzM2MF9GXzcyODMw/MjYyMF9YZGRuZjVD/bDBLMUFDWnVyZDZ5/QnlVekhpSE1NSW9l/Ni5qcGc"
-          alt="Captain Background"
-        />
+      <div className="h-3/5 relative z-0">
+        <LiveTracking />
       </div>
 
       {/* Bottom Info */}

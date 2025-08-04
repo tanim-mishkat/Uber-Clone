@@ -16,6 +16,7 @@ import { useContext } from "react";
 import { useSocket } from "../context/SocketContext";
 import RidePopUp from "../components/RidePopUp";
 import { useNavigate } from "react-router-dom";
+import LiveTracking from "../components/LiveTracking";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
@@ -200,17 +201,13 @@ const Home = () => {
   return (
     <div className="h-screen relative overflow-hidden">
       <img
-        className="w-16 absolute left-5 top-5"
+        className="w-16 absolute left-5 top-5 "
         src={uberLogo}
         alt="uber logo"
       />
 
-      <div className="w-screen h-screen">
-        <img
-          className="w-full h-full object-cover"
-          src="https://imgs.search.brave.com/A9FGg0apJw5tFxYaTVZR3XNGO-SbZK-IiQwKcfRzWi8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzA3LzI4LzMwLzI2/LzM2MF9GXzcyODMw/MjYyMF9YZGRuZjVD/bDBLMUFDWnVyZDZ5/QnlVekhpSE1NSW9l/Ni5qcGc"
-          alt=""
-        />
+      <div className="w-screen h-screen relative z-0">
+        <LiveTracking />
       </div>
 
       <div className="top-0 absolute h-screen w-full flex flex-col justify-end">
