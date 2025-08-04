@@ -1,7 +1,34 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const FinishRide = (props) => {
+  const navigate = useNavigate();
+  async function endRide() {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/end-ride`,
+        {
+          rideId: props.rideData?._id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        console.log("Ride ended successfully:", response.data);
+        navigate("/captain-home");
+      }
+    } catch (error) {
+      console.error("Error ending ride:", error.message);
+      console.error(
+        "Response details:",
+        error.response?.data || "No response data"
+      );
+    }
+  }
   return (
     <div>
       <h5
@@ -57,12 +84,12 @@ const FinishRide = (props) => {
         </div>
 
         <div className="mt-6 w-full">
-          <Link
-            to="/captain-home"
+          <button
+            onClick={endRide}
             className="mt-3 w-full flex justify-center  bg-green-600 text-white font-semibold  p-2 px-6 rounded-lg"
           >
             Finish Ride
-          </Link>
+          </button>
         </div>
       </div>
     </div>

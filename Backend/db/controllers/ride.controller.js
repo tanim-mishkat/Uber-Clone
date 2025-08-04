@@ -127,3 +127,34 @@ module.exports.startRide = async (req, res) => {
         });
     }
 }
+
+module.exports.endRide = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log("Errors in endRide (controller):", errors.array());
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { rideId } = req.body;
+
+    try {
+        const ride = await rideService.endRide({ rideId, captain: req.captain });
+
+        if (!ride) {
+            return res.status(404).json({ message: 'Ride not found' });
+        }
+
+        sendMessageToSocketId(ride.user.socketId, {
+            event: 'ride-ended',
+            data: ride
+        });
+
+        return res.status(200).json(ride);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            message: 'Failed to end ride in ride controller',
+            error: err.message
+        });
+    }
+};
