@@ -1,9 +1,8 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSocket } from "../context/SocketContext";
-import { useEffect } from "react";
-import { useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import LiveTracking from "../components/LiveTracking";
+import MobileFrame from "../components/layout/MobileFrame";
+
 const Riding = () => {
   const location = useLocation();
   const ride = location.state?.ride;
@@ -15,64 +14,69 @@ const Riding = () => {
   });
 
   return (
-    <div className="h-screen">
-      <Link
-        to="/home"
-        className="right-2 top-2 fixed h-10 w-10 bg-white flex items-center justify-center rounded-full "
-      >
-        <i className="ri-home-5-line text-lg font-medium"></i>
-      </Link>
-      <div className="h-1/2 ">
-        <LiveTracking />
-      </div>
-      <div className="h-1/2 p-4">
-        <div className="flex items-center justify-between">
-          <img
-            src=" https://imgs.search.brave.com/jbkD8t3qexpL_IRFxMjNwnZXxCWMoIAeUDRRJx3hh3w/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3N5c3RlbS9y/ZXNvdXJjZXMvdGh1/bWJuYWlscy8wMjkv/OTQ2LzE5My9zbWFs/bC93aGl0ZS1tb2Rl/cm4tY2FyLWlzb2xh/dGVkLW9uLXRyYW5z/cGFyZW50LWJhY2tn/cm91bmQtM2QtcmVu/ZGVyaW5nLWlsbHVz/dHJhdGlvbi1mcmVl/LXBuZy5wbmc"
-            className="h-12"
-          />
-          <div className="text-right">
-            <h2 className="text-xl font-medium capitalize text-gray-900">
-              {ride?.user.fullname.firstname +
-                " " +
-                ride?.user.fullname.lastname}
-            </h2>
-            <h4 className="text-xl font-semibold -mt-1 -mb-1 text-gray-900 capitalize">
-              Ride Type: {ride?.captain?.vehicle?.vehicleType}
-            </h4>
-            <p className="text-sm font-semibold -mt-1 -mb-1 text-gray-900">
-              License Plate: {ride?.captain?.vehicle?.plate}
-            </p>
-          </div>
+    <MobileFrame>
+      <div className="h-full relative">
+        {/* Home Button scoped to frame */}
+        <Link
+          to="/home"
+          className="absolute right-2 top-2 h-10 w-10 bg-white flex items-center justify-center rounded-full"
+          title="Home"
+        >
+          <i className="ri-home-5-line text-lg font-medium"></i>
+        </Link>
+
+        <div className="h-1/2">
+          <LiveTracking />
         </div>
 
-        <div className="flex flex-col gap-2 justify-between items-center">
-          <div className="w-full mt-5">
-            <div className="flex items-center gap-5 p-3 border-b-2  ">
-              <i className="ri-map-pin-2-fill text-lg"></i>
-
-              <div>
-                <h3 className="font-medium text-lg">24B/AA-11</h3>
-                <p className="text-sm text-gray-600 -mt-1">
-                  {ride?.pickup || "Pickup Location"}
-                </p>
-              </div>
+        <div className="h-1/2 p-4">
+          <div className="flex items-center justify-between">
+            <img
+              src=" https://imgs.search.brave.com/jbkD8t3qexpL_IRFxMjNwnZXxCWMoIAeUDRRJx3hh3w/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3N5c3RlbS9y/ZXNvdXJjZXMvdGh1/bWJuYWlscy8wMjkv/OTQ2LzE5My9zbWFs/bC93aGl0ZS1tb2Rl/cm4tY2FyLWlzb2xh/dGVkLW9uLXRyYW5z/cGFyZW50LWJhY2tn/cm91bmQtM2QtcmVu/ZGVyaW5nLWlsbHVz/dHJhdGlvbi1mcmVl/LXBuZy5wbmc"
+              className="h-12"
+            />
+            <div className="text-right">
+              <h2 className="text-xl font-medium capitalize text-gray-900">
+                {ride?.user.fullname.firstname +
+                  " " +
+                  ride?.user.fullname.lastname}
+              </h2>
+              <h4 className="text-xl font-semibold -mt-1 -mb-1 text-gray-900 capitalize">
+                Ride Type: {ride?.captain?.vehicle?.vehicleType}
+              </h4>
+              <p className="text-sm font-semibold -mt-1 -mb-1 text-gray-900">
+                License Plate: {ride?.captain?.vehicle?.plate}
+              </p>
             </div>
-            <div className="flex items-center gap-5 p-3 ">
-              <i className="ri-currency-line text-lg"></i>
-              <div>
-                <h3 className="font-medium text-lg">${ride?.fare}</h3>
-                <p className="text-sm text-gray-600 -mt-1">Cash</p>
+          </div>
+
+          <div className="flex flex-col gap-2 justify-between items-center">
+            <div className="w-full mt-5">
+              <div className="flex items-center gap-5 p-3 border-b-2">
+                <i className="ri-map-pin-2-fill text-lg"></i>
+                <div>
+                  <h3 className="font-medium text-lg">24B/AA-11</h3>
+                  <p className="text-sm text-gray-600 -mt-1">
+                    {ride?.pickup || "Pickup Location"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-5 p-3">
+                <i className="ri-currency-line text-lg"></i>
+                <div>
+                  <h3 className="font-medium text-lg">${ride?.fare}</h3>
+                  <p className="text-sm text-gray-600 -mt-1">Cash</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <button className="w-full bg-green-600 text-white font-semibold mt-5 p-2 rounded-lg">
-          Make A Payment
-        </button>
+          <button className="w-full bg-green-600 text-white font-semibold mt-5 p-2 rounded-lg">
+            Make A Payment
+          </button>
+        </div>
       </div>
-    </div>
+    </MobileFrame>
   );
 };
 

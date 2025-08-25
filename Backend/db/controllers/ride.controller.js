@@ -40,6 +40,17 @@ module.exports.createRide = async (req, res, next) => {
                 data: rideWithUser
             });
         });
+        console.log("createRide -> found captains:", captainsInRadius.length);
+        const targets = captainsInRadius.filter(c => !!c.socketId);
+        console.log("createRide -> with socketId:", targets.length);
+
+        if (targets.length === 0) {
+            console.warn("No captains with socketId in radius. (Is captain joined? location saved?)");
+        }
+        targets.forEach(captain => {
+            sendMessageToSocketId(captain.socketId, { event: "new-ride", data: rideWithUser });
+        });
+
 
     } catch (error) {
         console.error('Error in createRide (controller):', error);

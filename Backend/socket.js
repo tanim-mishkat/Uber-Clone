@@ -16,6 +16,7 @@ function initializeSocket(server) {
         console.log("Socket connected:", socket.id);
 
         socket.on("join", async ({ userId, userType }) => {
+
             try {
                 if (userType === "user") {
                     await userModel.findByIdAndUpdate(userId, { socketId: socket.id });
@@ -31,6 +32,7 @@ function initializeSocket(server) {
 
         socket.on("update-location-captain", async (data) => {
             const { userId, location } = data;
+            console.log(`LOC UPDATE cap=${userId} lat=${location?.lat} lon=${location?.lon}`);
 
             if (!location || !location.lat || !location.lon) {
                 return socket.emit("error", { message: "Invalid location data" });

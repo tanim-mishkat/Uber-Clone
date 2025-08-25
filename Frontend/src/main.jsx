@@ -6,13 +6,16 @@ import { BrowserRouter } from "react-router-dom";
 import UserContext from "./context/UserContext.jsx";
 import CaptainContext from "./context/CaptainContext.jsx";
 import { SocketProvider } from "./context/SocketContext.jsx";
+import { ToasterProvider } from "./components/ui/Toaster.jsx";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <SocketProvider>
       <UserContext>
         <CaptainContext>
           <BrowserRouter>
-            <App />
+            <ToasterProvider>
+              <App />
+            </ToasterProvider>
           </BrowserRouter>
         </CaptainContext>
       </UserContext>
