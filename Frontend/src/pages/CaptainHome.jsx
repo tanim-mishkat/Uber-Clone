@@ -6,7 +6,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import ConfirmRidePopUp from "../components/ConfirmRidePopUp";
 import { CaptainDataContext } from "../context/CaptainContext";
-import { useSocket } from "../context/SocketContext";
+import { useSocket } from "../context/useSocket";
 import axios from "axios";
 import LiveTracking from "../components/LiveTracking";
 import MobileFrame from "../components/layout/MobileFrame";
