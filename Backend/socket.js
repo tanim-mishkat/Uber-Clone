@@ -3,29 +3,41 @@ const { Server } = require("socket.io");
 const userModel = require("./models/user.model");
 const captainModel = require("./models/captain.model");
 
-/** parse comma-separated origins from env */
 function parseOrigins(v) {
-    return (v || "")
-        .split(",")
-        .map(s => s.trim())
-        .filter(Boolean);
+    return (v || "").split(",").map(s => s.trim()).filter(Boolean);
 }
 
 let io = null;
 
+async function saveSocketId({ userType, userId, socketId }) {
+    if (userType === "user") {
+        await userModel.findByIdAndUpdate(userId, { socketId });
+    } else if (userType === "captain") {
+        await captainModel.findByIdAndUpdate(userId, { socketId, status: "active" });
+    }
+}
+
+async function clearSocketId(socketId) {
+    // remove socketId on disconnect so we don't emit to dead sockets
+    await Promise.all([
+        userModel.updateMany({ socketId }, { $unset: { socketId: 1 } }),
+        captainModel.updateMany({ socketId }, { $unset: { socketId: 1 }, status: "inactive" })
+    ]);
+}
+
 /**
- * Initialize Socket.IO on the given HTTP server
- * - Reads allowed origins from SOCKET_ORIGINS (fallback: CORS_ORIGINS)
- * - Enables credentials
- * - Uses websocket + polling (works on Render free)
- * - Longer ping timeouts to tolerate cold starts
+ * initializeSocket(server)
+ * Keeps your original events:
+ *   - "join"  ({ userId, userType })
+ *   - "update-location-captain" ({ userId, location:{lat,lon} })
+ * Also supports legacy aliases "user-join", "captain-join", "update-location".
  */
 function initializeSocket(server) {
     const allowlist = parseOrigins(process.env.SOCKET_ORIGINS || process.env.CORS_ORIGINS);
 
     io = new Server(server, {
         cors: {
-            origin: allowlist.length ? allowlist : [], // [] => no cross-origin allowed
+            origin: allowlist.length ? allowlist : true,
             methods: ["GET", "POST"],
             credentials: true
         },
@@ -37,73 +49,58 @@ function initializeSocket(server) {
     io.on("connection", (socket) => {
         console.log("socket connected:", socket.id);
 
-        // Expect: { userId: string, userType: "user" | "captain" }
-        socket.on("join", async ({ userId, userType }) => {
+        const handleJoin = async (payload = {}, ack) => {
             try {
-                if (!userId || !userType) {
-                    return socket.emit("error", { message: "userId and userType are required" });
-                }
-
-                if (userType === "user") {
-                    await userModel.findByIdAndUpdate(userId, { socketId: socket.id });
-                } else if (userType === "captain") {
-                    await captainModel.findByIdAndUpdate(userId, { socketId: socket.id });
-                } else {
-                    return socket.emit("error", { message: "Invalid userType" });
-                }
-
+                const { userId, userType } = payload;
+                if (!userId || !userType) return ack?.({ ok: false, error: "userId and userType required" });
+                await saveSocketId({ userType, userId, socketId: socket.id });
+                socket.join(`${userType}:${userId}`); // optional room
                 console.log(`JOIN user=${userId} type=${userType} sid=${socket.id}`);
-                socket.emit("joined", { ok: true });
-            } catch (err) {
-                console.error("join error:", err?.message);
-                socket.emit("error", { message: "Failed to join" });
+                ack?.({ ok: true });
+            } catch (e) {
+                console.error("join error:", e?.message);
+                ack?.({ ok: false, error: "join failed" });
             }
-        });
+        };
+        socket.on("join", handleJoin);
+        socket.on("user-join", p => handleJoin({ ...p, userType: "user" }));
+        socket.on("captain-join", p => handleJoin({ ...p, userType: "captain" }));
 
-        // Expect: { userId: string, location: { lat: number, lon: number } }
-        socket.on("update-location-captain", async ({ userId, location }) => {
+        const handleUpdateLoc = async (payload = {}, ack) => {
             try {
-                const lat = location?.lat;
-                const lon = location?.lon;
-                if (!userId || typeof lat !== "number" || typeof lon !== "number") {
-                    return socket.emit("error", { message: "Invalid location payload" });
-                }
+                const { userId, location } = payload;
+                const lat = Number(location?.lat);
+                const lon = Number(location?.lon);
+                if (!userId || Number.isNaN(lat) || Number.isNaN(lon)) return ack?.({ ok: false, error: "invalid location" });
 
                 await captainModel.findByIdAndUpdate(userId, {
                     location: { type: "Point", coordinates: [lon, lat] }
                 });
 
                 console.log(`LOC captain=${userId} lat=${lat} lon=${lon}`);
-                socket.emit("location-updated", { ok: true });
-            } catch (err) {
-                console.error("update-location error:", err?.message);
-                socket.emit("error", { message: "Failed to update location" });
+                ack?.({ ok: true });
+            } catch (e) {
+                console.error("update-location error:", e?.message);
+                ack?.({ ok: false, error: "update failed" });
             }
-        });
+        };
+        socket.on("update-location-captain", handleUpdateLoc);
+        socket.on("update-location", handleUpdateLoc); // alias
 
-        socket.on("disconnect", (reason) => {
+        socket.on("disconnect", async (reason) => {
             console.log("socket disconnected:", socket.id, reason);
-            // (optional) clear socketId from DB here if you want
+            await clearSocketId(socket.id);
         });
     });
 
     return io;
 }
 
-/** Utility to emit to a specific socket id */
 function sendMessageToSocketId(socketId, { event, data }) {
-    if (!io) return console.error("Socket.io not initialized");
-    if (!socketId || !event) return console.error("Invalid emit args");
+    if (!io || !socketId || !event) return;
     io.to(socketId).emit(event, data);
 }
 
-/** optional accessor */
-function getIO() {
-    return io;
-}
+function getIO() { return io; }
 
-module.exports = {
-    initializeSocket,
-    sendMessageToSocketId,
-    getIO
-};
+module.exports = { initializeSocket, sendMessageToSocketId, getIO };

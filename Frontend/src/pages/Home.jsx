@@ -45,10 +45,16 @@ const Home = () => {
   const { user } = useContext(UserDataContext);
 
   useEffect(() => {
-    if (socket && user?._id) {
-      socket.emit("join", { userId: user._id, userType: "user" });
-    }
-  }, [user, socket]);
+    if (!socket || !user?._id) return;
+    const handleConnect = () => {
+      socket.emit("join", { userId: user._id, userType: "user" }, (ack) => {
+        if (!ack?.ok) console.warn("join failed:", ack?.error);
+      });
+    };
+    handleConnect();
+    socket.on("connect", handleConnect);
+    return () => socket.off("connect", handleConnect);
+  }, [socket, user?._id]);
 
   useEffect(() => {
     if (!socket) return;
@@ -115,7 +121,7 @@ const Home = () => {
     try {
       const payload = { pickup, destination, vehicleType };
       await http.post(api("/rides/create"), payload);
-      
+
       setVehicleFound(true);
       setConfirmRidePanel(false);
     } catch (error) {

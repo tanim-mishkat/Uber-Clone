@@ -69,6 +69,8 @@ module.exports.loginCaptain = async (req, res) => {
         path: "/",
         maxAge: 24 * 60 * 60 * 1000
     });
+    await captainModel.findByIdAndUpdate(captain._id, { status: "active" });
+
     res.status(200).json({ captain, token });
 };
 module.exports.getCaptainProfile = async (req, res) => {
@@ -79,5 +81,7 @@ module.exports.logoutCaptain = async (req, res) => {
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
     await blacklistTokenModel.create({ token });
     res.clearCookie('token');
+    await captainModel.findByIdAndUpdate(req.captain._id, { status: "inactive", socketId: null });
+
     res.status(200).json({ message: "Logged out successfully" });
 };

@@ -24,30 +24,58 @@ function CaptainHome() {
   const { captain } = useContext(CaptainDataContext);
 
   useEffect(() => {
-    if (socket && captain?._id) {
-      socket.emit("join", { userId: captain._id, userType: "captain" });
-    }
-  }, [socket, captain]);
-
+    if (!socket || !captain?._id) return;
+    const handleConnect = () => {
+      socket.emit(
+        "join",
+        { userId: captain._id, userType: "captain" },
+        (ack) => {
+          if (!ack?.ok) console.warn("join failed:", ack?.error);
+        }
+      );
+    };
+    // fire now and whenever the transport reconnects
+    handleConnect();
+    socket.on("connect", handleConnect);
+    return () => socket.off("connect", handleConnect);
+  }, [socket, captain?._id]);
   useEffect(() => {
-    function updateLocation() {
-      if (navigator.geolocation && captain?._id && socket) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          socket.emit("update-location-captain", {
-            userId: captain._id,
-            location: {
-              lat: position.coords.latitude,
-              lon: position.coords.longitude,
+    if (!socket || !captain?._id) return;
+    let watchId = null;
+    const startWatch = () => {
+      if (!("geolocation" in navigator)) return;
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          socket.emit(
+            "update-location-captain",
+            {
+              userId: captain._id,
+              location: { lat: pos.coords.latitude, lon: pos.coords.longitude },
             },
-          });
-        });
-      }
+            (ack) => {
+              if (!ack?.ok) console.warn("loc update failed:", ack?.error);
+            }
+          );
+        },
+        (err) => console.warn("geolocation error:", err?.message),
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+      );
+    };
+    // avoid Chrome “gesture” warning: only autostart if already granted
+    if (navigator.permissions?.query) {
+      navigator.permissions
+        .query({ name: "geolocation" })
+        .then((p) => {
+          if (p.state === "granted") startWatch();
+        })
+        .catch(startWatch);
+    } else {
+      startWatch();
     }
-    updateLocation();
-    const locationInterval = setInterval(updateLocation, 10000);
-    return () => clearInterval(locationInterval);
-  }, [captain?._id, socket]);
-
+    return () => {
+      if (watchId != null) navigator.geolocation.clearWatch(watchId);
+    };
+  }, [socket, captain?._id]);
   useEffect(() => {
     if (!socket) return;
     const onNewRide = (r) => {

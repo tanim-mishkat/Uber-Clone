@@ -5,12 +5,9 @@ const { sendMessageToSocketId } = require('../../socket');
 const rideModel = require('../../models/ride.model');
 const captainModel = require('../../models/captain.model');
 
-module.exports.createRide = async (req, res, next) => {
+module.exports.createRide = async (req, res) => {
     const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { pickup, destination, vehicleType } = req.body;
 
@@ -22,40 +19,34 @@ module.exports.createRide = async (req, res, next) => {
             vehicleType
         });
 
+        // respond immediately
         res.status(201).json(ride);
 
+        // then notify nearby captains
         const pickupCoordinates = await mapService.getAddressCoordinate(pickup);
+        const captainsInRadius = await mapService.getCaptainsInTheRadius(
+            pickupCoordinates.lat,
+            pickupCoordinates.lon,
+            2000
+        );
 
-        // console.log(pickupCoordinates);
+        const rideWithUser = await rideModel.findById(ride._id).populate("user"); // otp is select:false
 
-        const captainsInRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.lat, pickupCoordinates.lon, 50);
-
-        ride.otp = "";
-        const rideWithUser = await rideModel.findOne({ _id: ride._id }).populate('user');
-
-        captainsInRadius.map(captain => {
-            console.log(captain, ride);
-            sendMessageToSocketId(captain.socketId, {
-                event: "new-ride",
-                data: rideWithUser
-            });
-        });
-
-        const targets = captainsInRadius.filter(captain => captain.socketId);
+        const targets = captainsInRadius.filter(c => !!c.socketId);
+        console.log("createRide -> captains nearby:", captainsInRadius.length, "with socket:", targets.length);
 
         if (targets.length === 0) {
-            console.warn("No captains with socketId in radius. (Is captain joined? location saved?)");
+            console.warn("No captains with socketId in radius.");
+            return;
         }
+
         targets.forEach(captain => {
             sendMessageToSocketId(captain.socketId, { event: "new-ride", data: rideWithUser });
         });
-
-
     } catch (error) {
-        console.error('Error in createRide (controller):', error);
-        res.status(500).json({ message: 'Failed to create ride', error: error.message });
+        console.error("Error in createRide (controller):", error);
+        res.status(500).json({ message: "Failed to create ride", error: error.message });
     }
-
 };
 
 module.exports.getFare = async (req, res, next) => {

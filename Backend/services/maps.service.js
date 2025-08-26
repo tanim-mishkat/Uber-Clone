@@ -113,15 +113,15 @@ module.exports.getAutoCompleteSuggestions = async (input) => {
     }
 };
 
-module.exports.getCaptainsInTheRadius = async (lat, lon, radius) => {
-    // radius in kilometers
-    const captains = await captainModel.find({
+module.exports.getCaptainsInTheRadius = async (lat, lon, radiusKm) => {
+    return captainModel.find({
+        status: "active",
+        socketId: { $exists: true, $ne: null },
         location: {
             $geoWithin: {
-                $centerSphere: [[lon, lat], radius / 6371] // radius in kilometers
+                $centerSphere: [[lon, lat], radiusKm / 6371] // km -> radians
             }
         }
     });
+};
 
-    return captains;
-}
