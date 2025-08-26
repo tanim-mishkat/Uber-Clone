@@ -9,7 +9,10 @@ const VehiclePanel = (props) => {
       </h5>
       <h3 className="text-2xl font-semibold mb-5">Choose a vehicle</h3>
       <div
-        onClick={() => props.setConfirmRidePanel(true)}
+        onClick={() => {
+          props.selectVehicleType("car");
+          props.setConfirmRidePanel(true);
+        }}
         className="flex items-center justify-between w-full p-3 border-2 bg-gray-100 rounded-xl mb-2 active:border-black"
       >
         <img
@@ -37,7 +40,10 @@ const VehiclePanel = (props) => {
         </h2>
       </div>
       <div
-        onClick={() => props.setConfirmRidePanel(true)}
+        onClick={() => {
+          props.selectVehicleType("motorcycle");
+          props.setConfirmRidePanel(true);
+        }}
         className="flex items-center justify-between w-full p-3 border-2 bg-gray-100 rounded-xl mb-2 active:border-black"
       >
         <img
@@ -65,7 +71,10 @@ const VehiclePanel = (props) => {
         </h2>
       </div>
       <div
-        onClick={() => props.setConfirmRidePanel(true)}
+        onClick={() => {
+          props.selectVehicleType("cng");
+          props.setConfirmRidePanel(true);
+        }}
         className="flex items-center justify-between w-full p-3 border-2 bg-gray-100 rounded-xl mb-2 active:border-black"
       >
         <img
