@@ -7,8 +7,8 @@
 **/.env
 **/.env.*
 
-# build outputs
+# build outputs / caches
 dist/
 build/
-.cache/
 **/.vite/
+.cache/
