@@ -8,7 +8,8 @@ import VehiclePanel from "../components/VehiclePanel";
 import ConfirmRide from "../components/ConfirmRide";
 import LookingForDriver from "../components/LookingForDriver";
 import WaitingForDriver from "../components/WaitingForDriver";
-import axios from "axios";
+import { http } from "../context/http";
+import { api } from "../context/apiBase";
 import { UserDataContext } from "../context/UserContext";
 import { useSocket } from "../context/useSocket.js";
 import { useNavigate } from "react-router-dom";
@@ -70,13 +71,10 @@ const Home = () => {
 
   async function findTrip() {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/rides/get-fare`,
-        {
-          params: { pickup, destination },
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
+      const response = await http.get(api("/rides/get-fare"), {
+        params: { pickup, destination },
+      });
+
       setFare(response.data || { car: "N/A", motorcycle: "N/A", cng: "N/A" });
     } catch {
       setFare({ car: "N/A", motorcycle: "N/A", cng: "N/A" });
@@ -89,16 +87,10 @@ const Home = () => {
       if (!token) return;
       const input = e.target.value.trim();
       if (!input) return setSuggestions([]);
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/maps/get-suggestions`,
-        {
-          params: { input },
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await http.get(api("/maps/get-suggestions"), {
+        params: { input },
+      });
+
       setSuggestions(response.data || []);
     } catch {
       setSuggestions([]);
@@ -122,13 +114,8 @@ const Home = () => {
   async function createRide() {
     try {
       const payload = { pickup, destination, vehicleType };
-      await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/rides/create`,
-        payload,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
+      await http.post(api("/rides/create"), payload);
+      
       setVehicleFound(true);
       setConfirmRidePanel(false);
     } catch (error) {

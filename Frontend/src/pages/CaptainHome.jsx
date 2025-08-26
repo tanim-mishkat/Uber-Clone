@@ -7,7 +7,8 @@ import gsap from "gsap";
 import ConfirmRidePopUp from "../components/ConfirmRidePopUp";
 import { CaptainDataContext } from "../context/CaptainContext";
 import { useSocket } from "../context/useSocket";
-import axios from "axios";
+import { http } from "../context/http";
+import { api } from "../context/apiBase";
 import LiveTracking from "../components/LiveTracking";
 import MobileFrame from "../components/layout/MobileFrame";
 
@@ -63,13 +64,7 @@ function CaptainHome() {
     if (!ride?._id || !captain?._id) return;
     try {
       const payload = { rideId: ride._id, captainId: captain._id };
-      await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/rides/confirm`,
-        payload,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
+      await http.post(api("/rides/confirm"), payload);
     } catch (error) {
       console.log(
         "Error confirming ride:",

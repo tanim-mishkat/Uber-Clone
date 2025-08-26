@@ -1,6 +1,7 @@
 import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { http } from "../context/http";
+import { api } from "../context/apiBase";
 import { UserDataContext } from "../context/UserContext";
 import MobileFrame from "../components/layout/MobileFrame";
 
@@ -26,10 +27,7 @@ const UserSignup = () => {
       password: password,
     };
 
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/users/register`,
-      newUser
-    );
+    const response = await http.post(api("/users/register"), newUser);
     if (response.status === 201) {
       const data = response.data;
       setUser(data.user);

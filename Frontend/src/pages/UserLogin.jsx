@@ -1,14 +1,14 @@
 import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserDataContext } from "../context/UserContext";
-import axios from "axios";
+import { http } from "../context/http";
+import { api } from "../context/apiBase";
 import MobileFrame from "../components/layout/MobileFrame";
 
 const UserLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // eslint-disable-next-line no-unused-vars
-  // const [userData, setUserData] = useState({});
+
   const [showPassword, setShowPassword] = useState(false);
 
   const { user, setUser } = useContext(UserDataContext);
@@ -21,10 +21,8 @@ const UserLogin = () => {
       password: password,
     };
 
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/users/login`,
-      userData
-    );
+    const response = await http.post(api("/users/login"), userData);
+
     if (response.status === 200) {
       const data = response.data;
       setUser(data.user);

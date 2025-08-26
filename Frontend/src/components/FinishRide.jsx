@@ -1,22 +1,16 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { http } from "../context/http";
+import { api } from "../context/apiBase";
 
 const FinishRide = (props) => {
   const navigate = useNavigate();
   async function endRide() {
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/rides/end-ride`,
-        {
-          rideId: props.rideData?._id,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await http.post(api("/rides/end-ride"), {
+        rideId: props.rideData?._id,
+      });
+      
       if (response.status === 200) {
         console.log("Ride ended successfully:", response.data);
         navigate("/captain-home");

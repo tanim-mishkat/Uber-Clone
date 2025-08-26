@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { http } from "../context/http";
+import { api } from "../context/apiBase";
 import { CaptainDataContext } from "../context/CaptainContext";
 import MobileFrame from "../components/layout/MobileFrame";
 
@@ -39,10 +40,7 @@ const CaptainSignup = () => {
     };
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/captains/register`,
-        captainData
-      );
+      const response = await http.post(api("/captains/register"), captainData);
 
       if (response.status === 201) {
         const data = response.data;

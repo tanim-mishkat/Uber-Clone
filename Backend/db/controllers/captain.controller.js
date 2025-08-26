@@ -62,7 +62,13 @@ module.exports.loginCaptain = async (req, res) => {
 
     const token = await captain.generateAuthToken();
 
-    res.cookie('token', token); // Set cookie with token
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+        maxAge: 24 * 60 * 60 * 1000
+    });
     res.status(200).json({ captain, token });
 };
 module.exports.getCaptainProfile = async (req, res) => {

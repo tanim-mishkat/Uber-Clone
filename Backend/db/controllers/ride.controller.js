@@ -28,7 +28,7 @@ module.exports.createRide = async (req, res, next) => {
 
         // console.log(pickupCoordinates);
 
-        const captainsInRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.lat, pickupCoordinates.lon, 2000);
+        const captainsInRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.lat, pickupCoordinates.lon, 50);
 
         ride.otp = "";
         const rideWithUser = await rideModel.findOne({ _id: ride._id }).populate('user');
@@ -40,9 +40,8 @@ module.exports.createRide = async (req, res, next) => {
                 data: rideWithUser
             });
         });
-        console.log("createRide -> found captains:", captainsInRadius.length);
-        const targets = captainsInRadius.filter(c => !!c.socketId);
-        console.log("createRide -> with socketId:", targets.length);
+
+        const targets = captainsInRadius.filter(captain => captain.socketId);
 
         if (targets.length === 0) {
             console.warn("No captains with socketId in radius. (Is captain joined? location saved?)");

@@ -6,7 +6,10 @@ import React, {
   useState,
 } from "react";
 import { io } from "socket.io-client";
-import { getBaseUrl } from "./socketBaseUrl"; // moved helper
+import { apiBase } from "./apiBase";
+import { useContext } from "react";
+import { UserDataContext } from "./UserContext";
+import { CaptainDataContext } from "./CaptainContext";
 
 export const SocketContext = createContext({
   socket: null,
@@ -14,10 +17,20 @@ export const SocketContext = createContext({
   emit: () => {},
 });
 
-export const SocketProvider = ({ children, user }) => {
-  const baseURL = useMemo(getBaseUrl, []);
+export const SocketProvider = ({ children }) => {
+  const baseURL = useMemo(apiBase, []);
   const [socket, setSocket] = useState(null);
   const connectingRef = useRef(false);
+
+  const { user: appUser } = useContext(UserDataContext) || {};
+  const { captain } = useContext(CaptainDataContext) || {};
+  // Decide who is logged in:
+  // - If captain exists, prefer captain; else if user exists, use user
+  const current = useMemo(() => {
+    if (captain?._id) return { id: captain._id, type: "captain" };
+    if (appUser?._id) return { id: appUser._id, type: "user" };
+    return null;
+  }, [appUser?._id, captain?._id]);
 
   useEffect(() => {
     if (connectingRef.current || socket) return;
@@ -25,7 +38,7 @@ export const SocketProvider = ({ children, user }) => {
 
     const s = io(baseURL, {
       withCredentials: true,
-      transports: ["websocket", "polling"],
+      transports: ["websocket"], // prefer ws; proxy-friendly
       reconnection: true,
       reconnectionAttempts: 8,
       reconnectionDelay: 500,
@@ -55,9 +68,10 @@ export const SocketProvider = ({ children, user }) => {
   }, [baseURL, socket]);
 
   useEffect(() => {
-    if (!socket || !user?.id || !user?.type) return;
-    socket.emit("join", { userId: user.id, userType: user.type });
-  }, [socket, user?.id, user?.type]);
+    if (!socket || !current?.id || !current?.type) return;
+    console.log("[socket] join emit", current);
+    socket.emit("join", { userId: current.id, userType: current.type });
+  }, [socket, current?.id, current?.type]);
 
   const ctx = useMemo(
     () => ({

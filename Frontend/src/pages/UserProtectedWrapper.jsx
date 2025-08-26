@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import { UserDataContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { http } from "../context/http";
+import { api } from "../context/apiBase";
 
 function UserProtectedWrapper({ children }) {
   const token = localStorage.getItem("token");
@@ -19,12 +20,8 @@ function UserProtectedWrapper({ children }) {
     const endpoint =
       userType === "captain" ? "/captains/profile" : "/users/profile";
 
-    axios
-      .get(`${import.meta.env.VITE_BASE_URL}${endpoint}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+    http
+      .get(api(endpoint))
       .then((response) => {
         if (response.status === 200) {
           setUser(response.data);
@@ -37,7 +34,7 @@ function UserProtectedWrapper({ children }) {
         localStorage.removeItem("userType");
         navigate("/login");
       });
-  }, [token, userType]);
+  }, [token, userType, navigate, setUser]);
 
   if (isLoading) {
     return <div>Loading...</div>;

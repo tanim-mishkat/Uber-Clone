@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState } from "react";
-import axios from "axios";
+import { http } from "./http";
+import { api } from "./apiBase";
 
 export const CaptainDataContext = createContext();
 
@@ -10,10 +11,8 @@ const CaptainContext = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      axios
-        .get(`${import.meta.env.VITE_BASE_URL}/captains/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+      http
+        .get(api("/captains/profile"))
         .then((res) => {
           console.log("🚨 captain profile response", res.data);
           setCaptain(res.data);

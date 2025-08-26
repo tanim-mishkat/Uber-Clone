@@ -10,16 +10,16 @@ import { SocketProvider } from "./context/SocketContext";
 import { ToasterProvider } from "./components/ui/Toaster.jsx";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <SocketProvider>
-      <UserContext>
-        <CaptainContext>
+    <UserContext>
+      <CaptainContext>
+        <SocketProvider>
           <BrowserRouter>
             <ToasterProvider>
               <App />
             </ToasterProvider>
           </BrowserRouter>
-        </CaptainContext>
-      </UserContext>
-    </SocketProvider>
+        </SocketProvider>
+      </CaptainContext>
+    </UserContext>
   </StrictMode>
 );

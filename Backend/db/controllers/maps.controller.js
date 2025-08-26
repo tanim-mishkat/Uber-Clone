@@ -26,15 +26,8 @@ module.exports.getDistanceTime = async (req, res, next) => {
 
     const { origin, destination } = req.query;
 
-    // Convert both place names to coordinates
-    const originCoords = await mapService.getAddressCoordinate(origin);
-    const destinationCoords = await mapService.getAddressCoordinate(destination);
+    const distanceTime = await mapService.getDistanceTime(origin, destination);
 
-    // Build arrays: [lat, lon]
-    const originArray = [originCoords.lat || originCoords.lat, originCoords.lon || originCoords.lon];
-    const destinationArray = [destinationCoords.lat || destinationCoords.lat, destinationCoords.lon || destinationCoords.lon];
-
-    const distanceTime = await mapService.getDistanceTime(originArray, destinationArray);
     res.status(200).json(distanceTime);
   } catch (error) {
     console.error(error.message);
