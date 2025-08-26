@@ -119,6 +119,10 @@ const Home = () => {
 
   async function createRide() {
     try {
+      if (!pickup || !destination || !vehicleType) {
+        alert("Please choose pickup, destination, and vehicle type.");
+        return;
+      }
       const payload = { pickup, destination, vehicleType };
       await http.post(api("/rides/create"), payload);
 
