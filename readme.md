@@ -20,6 +20,9 @@
 
 This is a complete Uber-like ride-sharing application with both backend API and frontend client. The backend is built with Node.js, Express, MongoDB, and Socket.io, while the frontend uses React with Vite, Tailwind CSS, and Leaflet for maps.
 
+**[Demo video](https://youtu.be/XDW9JwIUwmc?si=1Cib6QIXHYRS2dmH)**
+**[Live Site](https://uber-41vs.onrender.com/)**
+
 ### Features
 
 - **User & Captain Authentication**: JWT-based authentication with token blacklisting
